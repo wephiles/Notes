@@ -2,6 +2,12 @@
 
 [TOC]
 
+> [!Important]
+>
+> 注意：本基础知识笔记不完整，如果要看完整笔记,可以看武沛齐老师的仓库（记得给老师点个赞哦）：https://github.com/WuPeiqi/python_course 
+>
+> 我克隆到本地的武沛齐老师的`github`仓库: [python_course_clone_from_wupeiqi](E:\Notes\markdowns\Python\BASE\python_course_clone_from_wupeiqi)
+
 # 1. day-01 计算机基础和环境搭建
 
 今日概要
