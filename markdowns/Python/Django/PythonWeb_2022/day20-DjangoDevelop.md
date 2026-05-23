@@ -670,7 +670,12 @@ https://github.com/wephiles/python_course_fork_wupeiqi
   (微信小程序课程有讲)
   ```
 
-- 
+- 爬虫 + 数据分析
+  ```
+  【10天快速学会【爬虫】 +【 数据分析】实战】https://www.bilibili.com/video/BV1tE411F7do
+  ```
+
+  
 
 
 
