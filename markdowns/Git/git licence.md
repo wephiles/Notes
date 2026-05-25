@@ -388,14 +388,14 @@ SPDX-License-Identifier: MIT
 
 # 三、总结
 
-写法：LICENSE文件以后按照这个写就行了
+写法：LICENSE文件以后按照这个写就行了 -- 将中括号中的字符替换一下即可
 
 ```markdown
 MIT License
 
-Copyright (c) 2026 wephiles
+Copyright (c) [year] wephiles
 
-Repository: https://github.com/wephiles/host-management-system
+Repository: https://github.com/wephiles/[your Repository name]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

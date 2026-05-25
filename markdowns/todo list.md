@@ -2,7 +2,7 @@
 - [x] git 👉 [git](E:\Notes\markdowns\Git\git_complete.md)
 - [x] git license [git licence.md](E:\Notes\markdowns\Git\git licence.md)
 - [x] Django-主机管理系统 [主机管理系统](E:\Code\PyProjects\host_management_system)
-- [ ] Django学习-武沛齐2022 [2022Python 的web开发（完整版） - 哔哩哔哩](https://www.bilibili.com/video/BV1324y1f7iJ/?vd_source=baff9cf6834b96520ccb2d78edee6144)   -- [写的代码](E:\Code\PyProjects\employee_management)
+- [x] Django学习-武沛齐2022 [2022Python 的web开发（完整版） - 哔哩哔哩](https://www.bilibili.com/video/BV1324y1f7iJ/?vd_source=baff9cf6834b96520ccb2d78edee6144)   -- [写的代码](E:\Code\PyProjects\employee_management)
 - [ ] 闭包
 - [ ] 装饰器
 - [ ] 深拷贝浅拷贝
@@ -68,7 +68,7 @@
 - [ ] Python爬虫 -- js逆向
 - [ ] Python爬虫 -- app 逆向
 - [ ] Python爬虫 -- 安卓逆向 -- 哔哩哔哩搜 武沛齐
-- [ ] MySQL
+- [ ] mongodb
 - [ ] SQLite
 - [ ] PostgreSQL
 - [ ] pandas
