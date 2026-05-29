@@ -2260,7 +2260,7 @@ mysql>
 
 一般情况下，在很多的 **正规** 公司，数据库都是由 DBA 来进行统一管理的，DBA 为每个项目部的数据库创建用户，并赋予相关的权限。
 
-# day-03 SQL强化和实践
+# ⚠️day-03 SQL强化和实践
 
 课程目标：练习常用的SQL语句和表结构的设计。
 
@@ -2269,7 +2269,7 @@ mysql>
 - SQL强化
 - 表结构设计（博客系统）
 
-## 3.1 SQL强化（自己练习）
+## ⚠️3.1 SQL强化（自己练习）
 
 ![image-20260525154313984](./assets/image-20260525154313984.png)
 
@@ -2809,6 +2809,11 @@ from score group by student_id ;
 
 ### 3.1.21 查询各个班级的班级名称、总成绩、平均成绩、及格率（按平均成绩从大到小排序）。
 
+```sql
+```
+
+
+
 ### 3.1.22 查询学过 “波多” 老师课的同学的学号、姓名。
 
 ### 3.1.23 查询没学过 “波多” 老师课的同学的学号、姓名。
@@ -2855,7 +2860,7 @@ from score group by student_id ;
 - 课程ID为：2。
 - 成绩为：课程ID为3的最高分。
 
-## 3.2 表结构设计(自己练习)
+## ⚠️3.2 表结构设计(自己练习)
 
 据如下的业务需求设计相应的表结构，内部需涵盖如下功能。
 
@@ -2874,27 +2879,50 @@ from score group by student_id ;
 
 注意：只需要设计表结构，不需要用python代码实现具体的功能（再学一点知识点后再更好的去实现）。
 
-### 2.1 注册和登录
+### 3.2.1 注册和登录
 
 ![image-20210520204812764](./assets/image-20210520204812764.png)
 
-### 2.2 文章列表
+### 3.2.2 文章列表
 
 ![image-20210520204735867](./assets/image-20210520204735867.png)
 
 
 
-### 2.3 文章详细
+### 3.2.3 文章详细
 
 ![image-20210520205148509](./assets/image-20210520205148509.png)
 
 
 
-### 2.4 评论 & 阅读 & 赞 & 踩
+### 3.2.4 评论 & 阅读 & 赞 & 踩
 
 ![image-20210520205332907](./assets/image-20210520205332907.png)
 
 注意：假设都是一级评论（不能回复评论）。
+
+### 3.2.5 设计结果
+
+用户表
+
+| uid  | name | phone | email | nickname | password |
+| ---- | ---- | ----- | ----- | -------- | -------- |
+|      |      |       |       |          |          |
+|      |      |       |       |          |          |
+
+文章表
+
+| aid  | title | user_id | views | comments | recommends | opposes | upload_at |
+| ---- | ----- | ------- | ----- | -------- | ---------- | ------- | --------- |
+|      |       |         |       |          |            |         |           |
+
+评论表
+
+| cid  | floor | comment_at | content | user_id | artical_id |
+| ---- | ----- | ---------- | ------- | ------- | ---------- |
+|      |       |            |         |         |            |
+
+
 
 ## 3.3 表和数据的导入导出
 
@@ -2971,6 +2999,1257 @@ from score group by student_id ;
   ```
 
   ![image-20260525213035162](./assets/image-20260525213035162.png)
+
+## 3.4 SQL 强化（答案）
+
+## 3.5 表结构设计 - 老师的答案
+
+![image-20260526145430086](./assets/image-20260526145430086.png)
+
+# ⚠️day-04 索引和函数及存储过程
+
+课程概要：
+
+- 索引
+- 函数
+- 存储过程
+- 视图
+- 触发器
+
+## ⚠️4.1 索引
+
+在数据库中，索引最核心的作用是：加速查找。比如：在还有 300W条数据的表中查询，无索引需要 700s，而利用索引可能仅需1s。
+
+在开发过程中会为哪些经常会被搜索的列创建索引，以提高程序的响应速度，例如：查询手机号、邮箱、用户名等。
+
+### 4.1.1 索引原理
+
+为什么加上索引之后**查询速度**能有很大提升？ -- 因为索引的底层是基于 B+ 树存储的。
+
+![image-20260526134147834](./assets/image-20260526134147834.png)
+
+对 `id` 创建索引：
+
+![image-20260526133947490](./assets/image-20260526133947490.png)
+
+为 `name` 这一列创建索引
+
+![image-20260526134159174](./assets/image-20260526134159174.png)
+
+很明显，如果有了索引结构的查询效率比表中逐行查询的速度要快很多，且数据量越大越明显。
+
+> B+树演示：https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html
+
+
+
+数据库的索引是基于上述 B+树的数据结构实现的，但在**创建数据库表时，如果指定不同的引擎，底层使用的B+树结构的原理有些不同。**
+
+- `myisam` 引擎：非聚簇索引，数据和索引结构分开存储
+- `innodb` 引擎：聚簇索引，数据和之间索引结构存储在一起
+
+#### 4.1.1.1 非聚簇索引
+
+```sql
+create table 表名(
+	id int not null auto_increment primary key,
+    name carchar(16) not null,
+    age int
+)engine=myisam default charset=utf8;
+```
+
+![image-20260526134147834](./assets/image-20260526134147834.png)
+
+![image-20260526133947490](./assets/image-20260526133947490.png)
+
+![image-20260526135841422](./assets/image-20260526135841422.png)
+
+#### 4.1.1.2  聚簇索引
+
+```sql
+create table 表名(
+	id int not null auto_increment primary key,
+    name carchar(16) not null,
+    age int
+)engine=innodb default charset=utf8;
+```
+
+![image-20260526134147834](./assets/image-20260526134147834.png)
+
+![image-20260526133947490](./assets/image-20260526133947490.png)
+
+![image-20260526134159174](./assets/image-20260526134159174.png)
+
+![image-20260526140132310](./assets/image-20260526140132310.png)
+
+![image-20260526140408741](./assets/image-20260526140408741.png)
+
+![image-20260526140819305](./assets/image-20260526140819305.png)
+
+上述聚簇索引和非聚簇索引底层均利用了B+树的数据结构，只不过内部存储有些不同。
+
+在企业开发过程中一般都会使用innodb引擎（内部支持事务、行级锁、外键等特点），在MySQL5.5版本之后默认引擎也是innodb。
+
+![image-20260526141006252](./assets/image-20260526141006252.png)
+
+![image-20260526141138646](./assets/image-20260526141138646.png)
+
+- `innodb` 引擎 ，一般创建的索引都是聚簇索引
+
+### ⚠️4.1.2 常见索引
+
+在 innodb 引擎下，索引底层都是基于B+树存储的。（聚簇索引）
+
+![image-20260526134147834](./assets/image-20260526134147834.png)
+
+在开发过程中常见的索引类型有：
+
+- 主键索引：加速查找，不能为空，不能重复。 + 联合主键索引
+- 唯一索引：加速查找，不能重复。+联合唯一索引
+- 普通索引：加速查找。+联合索引
+
+#### 4.1.2.1 主键索引和联合主键索引
+
+```sql
+create table 表名(
+	id int not null auto_increment primary key, -- 主键
+    name varchar(16) not null
+);
+
+create table 表名(
+	id int not null auto_increment,
+    name varchar(16) not null,
+    primary key(id)
+);
+
+create table 表名(
+	id int not null auto_increment,
+    name varchar(16) not null,
+    primary key(列1, 列2) -- 如果有多列，称为联合主键（不常用且myism引擎支持）
+);
+```
+
+```sql
+alter table 表名 add primary key(id);
+```
+
+```sql
+alter table 表名 drop primary key;
+```
+
+注意：删除索引时可能会报错，自增列必须定义为键。
+
+![image-20260526142310961](./assets/image-20260526142310961.png)
+
+```sql
+create table t7(
+	id int not null,
+    name varchar(16) not null,
+    primary key(id)
+);
+
+alter table t7 drop primary key;
+```
+
+#### 4.1.2.2 唯一索引和联合唯一索引
+
+```sql
+create table 表名(
+	id int not null auto_increment primary key,
+    name varchar(32) not null,
+    email varchar(64) not null,
+    unique ix_name (name),
+    unique ix_email (email)
+);
+
+create table 表名(
+	id int not null auto_increment,
+    name varchar(32) not null,
+    unique (列1, 列2)  -- 如果有多列，称为联合唯一索引
+);
+```
+
+```sql
+create unique index 索引名 on 表名(列名);
+drop unique index 索引名 on 表名;
+```
+
+#### 4.1.2.3 索引和联合索引
+
+```sql
+create table 表名(
+	id int not null auto_increment primary key,
+    name varchar(32) not null,
+    email varchar(64) not null,
+    index ix_email(email)
+);
+
+create table 表名(
+	id int not null auto_increment primary key,
+    name varchar(32) not null,
+    email varchar(64) not null,
+    index (name, email) -- 如果有多列，称为联合索引
+);
+```
+
+```sql
+create index 索引名 on 表名(列名);
+drop index 索引名 on 表名;
+```
+
+在项目开发的设计表结构的环节，需要根据业务需求的特点来决定是否创建相同的索引。
+
+#### ⚠️4.1.2.4 案例：博客系统 -- 自己使用代码创建索引
+
+![image-20260526145430086](./assets/image-20260526145430086.png)
+
+- 每张表ID都创建 自增+主键
+- 用户表
+  - 用户名+密码
+  - 手机号，唯一
+  - 邮箱，唯一
+- 推荐表
+  - `user_id` 和 `artical_id` 创建联合唯一索引
+
+### 4.1.3 操作表
+
+在表中创建索引后，查询时一定要命中索引。
+
+![image-20260526134147834](./assets/image-20260526134147834.png)
+
+![image-20260526133947490](./assets/image-20260526133947490.png)
+
+在数据库的表中创建索引之后的优缺点如下：
+
+- 优点：查询速度快，约束（唯一、主键、联合唯一）
+- 缺点：插入、删除、更新速度比较慢，因为每次操作都需要调整整个B+树大的数据结构关系
+
+所以，不要无节制地创建索引。
+
+
+
+在开发中，我们会对表中经常被搜索到的列创建索引，从而提升程序的响应速度。
+
+![image-20260526134147834](./assets/image-20260526134147834.png)
+
+![image-20260526150829520](./assets/image-20260526150829520.png)
+
+![image-20260526150847094](./assets/image-20260526150847094.png)
+
+但是，还是会有一些特殊的情况让我们无法命中索引（即使创建了索引），这是需要在开发中注意的。
+
+- 类型不一致
+  ```sql
+  select * from big where name=123; -- 未命中
+  select * from big where email=123; -- 未命中
+  
+  特殊的主键：
+  select * from big where id='123'; -- 命中
+  ```
+
+- 使用不等于
+  ```
+  select * from big where name != 'jack'; -- 未命中
+  select * from big where email!= 'xxxx'; -- 未命中
+  
+  特殊的主键：
+  select * from big where id != 123; -- 命中索引
+  ```
+
+- `or`  当 `or` 条件中有未建立索引的列的时候才失效
+
+  ```sql
+  select * from big where id=123 or password='xxx'; -- 未命中
+  select * from big where name='xxx' or password='xxxxx'; -- 未命中
+  
+  特别的：
+  select * from big where id=10 or password='xxx' and name='xx'; -- 命中索引
+  ```
+
+- 排序 当根据索引排序时，选择的映射不是索引，则不走索引
+  ![image-20260526151806260](./assets/image-20260526151806260.png)
+
+- like，模糊匹配时
+  ![image-20260526151915415](./assets/image-20260526151915415.png)
+
+- 使用函数
+  ![image-20260526151943199](./assets/image-20260526151943199.png)
+
+- 最左前缀，如果是联合索引，要遵循最左前缀原则
+  ![image-20260526152022771](./assets/image-20260526152022771.png)
+
+常见的无法命中索引的情况都在上述示例中了。
+
+but，这些很难记住 -- 怎么办呢？ --> 执行计划
+
+### 4.1.4 执行计划
+
+MySQL中提供了执行计划，让我们能够预判SQL的执行，（只能给到一定的参考，不一定完全能预判准确）。
+
+```sql
+explain SQL语句;
+```
+
+![image-20260526152551485](./assets/image-20260526152551485.png)
+
+其中比较重要的是 type，它是SQL性能比较重要的标志，性能从低到高依次为：
+ `all < index < range < index_merge < ref_or_null < ref < eq_ref < system/const`
+
+一般 大于 `range` 是`OK` 的，如果是`all`或者`index`就比较耗时了。
+
+![image-20260526153046658](./assets/image-20260526153046658.png)
+
+![image-20260526153413913](./assets/image-20260526153413913.png)
+
+其他列：
+
+![image-20260526153442753](./assets/image-20260526153442753.png)
+
+![image-20260526153611126](./assets/image-20260526153611126.png)
+
+## 4.2 函数
+
+MySQL中提供了很多函数，为我们的SQL操作提供便利，例如：
+
+```sql
+select * from d1;
+
+select count(id),max(age),min(age),avg(score) from d1;
+
+select id,reverse(name) from d1;
+
+concat()
+
+NOW() - 获取当前时间
+
+DATA_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s') -- 日期格式化
+
+select concat('xxx', 'yyy') -- 'xxxyyy'
+
+select sleep(1) -- 这条 SQL 语句会耗时 1s.
+...
+```
+
+部分函数列表：
+
+![image-20260526154920254](./assets/image-20260526154920254.png)
+
+![image-20260526154946095](./assets/image-20260526154946095.png)
+
+![image-20260526155015345](./assets/image-20260526155015345.png)
+
+![image-20260526155048209](./assets/image-20260526155048209.png)
+
+![image-20260526155118867](./assets/image-20260526155118867.png)
+
+> 更多函数请参考：https://dev.mysql.com/doc/refman/5.7/en/functions.html
+
+当然，MySQL中支持自定义函数：
+
+- 创建函数
+
+  ![image-20260526155247764](./assets/image-20260526155247764.png)
+
+- 执行函数
+  ![image-20260526155312823](./assets/image-20260526155312823.png)
+
+  ![image-20260526155552165](./assets/image-20260526155552165.png)
+
+- 删除函数
+  ![image-20260526155322853](./assets/image-20260526155322853.png)
+
+## 4.3 存储过程
+
+存储过程，是一个存储在MySQL中的SQL语句集合，当主动去调用存储过程时，其中内部的SQL语句会按照逻辑执行。
+
+![image-20260526155708177](./assets/image-20260526155708177.png)
+
+- 创建存储过程
+  ```
+  delimiter $$
+  create procedure p()
+  BEGIN
+  	select * from student limit 10;
+  END $$
+  delimiter ;
+  ```
+
+- 执行存储过程
+  ```
+  call p1();
+  ```
+
+  ![image-20260526160444627](./assets/image-20260526160444627.png)
+
+  ```python
+  import pymysql
+  
+  conn = pymysql.connect(
+          host='127.0.0.1',
+          port=3306,
+          user='root',
+          password='123456',
+          charset="utf8",
+          database='userdb'
+      )
+  cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+  
+  # 执行存储过程
+  cursor.callproc('p1')
+  result = cursor.fetchall()
+  
+  # 关闭数据库连接
+  cursor.close()
+  conn.close()
+  
+  print(result)
+  ```
+
+- 删除存储过程
+  ```
+  drop procedure proc_name;
+  ```
+
+### 4.3.1 参数类型
+
+存储过程的参数可以有如下三种：
+
+- in：仅用于传入参数用
+- out：仅用于返回值用
+- inout：既可以传入又可以当做返回值
+
+```sql
+delimiter $$
+create procedure p2(
+	in i1 int,
+    in i2 int,
+    inout i3 int,
+    out r1 int
+)
+BEGIN
+	declare temp1 int;
+	declare temp2 int default 0;
+	
+	set temp1 = 1;
+	set r1 = i1 + i2 + temp1 + temp2;
+	
+	set i3 = i3 + 100;
+END $$
+delimiter ;
+```
+
+```sql
+set @t1 = 4;
+set @t2 = 0;
+CALL p2 (1, 2, @t1, @t2);
+SELECT @t1, @t2;
+```
+
+```sql
+import pymysql
+
+conn = pymysql.connect(
+        host='127.0.0.1',
+        port=3306,
+        user='root',
+        password='123456',
+        charset="utf8",
+        database='userdb'
+    )
+cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
+
+# 执行存储过程
+cursor.callproc('p2', args=(1, 22, 3, 4))
+# 获取执行完存储的参数
+cursor.execute("select @_p2_0, @_p2_1, @_p2_2, @_p2_3")
+# {'@_p2_0': 1, ...}
+
+result = cursor.fetchall()
+
+# 关闭数据库连接
+cursor.close()
+conn.close()
+
+print(result)
+```
+
+### 4.3.2 返回值 & 结果集
+
+![image-20260526161616197](./assets/image-20260526161616197.png)
+
+![image-20260526161824139](./assets/image-20260526161824139.png)
+
+### 4.3.3 事务 & 异常
+
+事务：成功都成功，失败都失败。
+
+![image-20260526162140039](./assets/image-20260526162140039.png)
+
+![image-20260526162152633](./assets/image-20260526162152633.png)
+
+![image-20260526162212065](./assets/image-20260526162212065.png)
+
+### 4.3.4 游标
+
+![image-20260526162231313](./assets/image-20260526162231313.png)
+
+## 4.4 视图
+
+视图其实是一个虚拟表（非真实存在），其本质是【根据SQL语句获取动态的数据集，并为其命名】，用户使用时只需要使用【名称】即可获取结果集，并可以将其当做表来使用。
+
+```sql
+select
+	*
+from
+	(select nid,name from tb1 where nid > 2) as A
+where
+	A.name > 'abc';
+```
+
+- 创建视图
+  ```sql
+  create view v1 as select id,name from d1 where id > 1;
+  ```
+
+- 使用视图
+  ```sql
+  select * from v1;
+  
+  -- 本质上：
+  -- select * from (select id,name from d1 where id > 1) as v1;
+  ```
+
+- 删除视图
+  ```sql
+  drop view v1;
+  ```
+
+- 修改视图
+  ```sql
+  alter view v1 as SQL语句;
+  ```
+
+注意：基于视图只能查询，针对视图不能执行增加 删除 修改。如果源表发生变化，视图表也会发生变化。
+
+## 4.5 触发器
+
+![image-20260526163216134](./assets/image-20260526163216134.png)
+
+对某个表进行【增/删/改】操作的前后如果希望触发某个特定的行为时，可以使用触发器。
+
+触发器 -- 存储在数据库中，这样就不用在自己的程序中控制了。
+
+```sql
+# 插入前
+CREATE TRIGGER tri_before_insert_tb1 BEFORE INSERT ON tb1 FOR EACH ROW
+BEGIN
+    ...
+END
+
+# 插入后
+CREATE TRIGGER tri_after_insert_tb1 AFTER INSERT ON tb1 FOR EACH ROW
+BEGIN
+    ...
+END
+
+# 删除前
+CREATE TRIGGER tri_before_delete_tb1 BEFORE DELETE ON tb1 FOR EACH ROW
+BEGIN
+    ...
+END
+
+# 删除后
+CREATE TRIGGER tri_after_delete_tb1 AFTER DELETE ON tb1 FOR EACH ROW
+BEGIN
+    ...
+END
+
+# 更新前
+CREATE TRIGGER tri_before_update_tb1 BEFORE UPDATE ON tb1 FOR EACH ROW
+BEGIN
+    ...
+END
+
+# 更新后
+CREATE TRIGGER tri_after_update_tb1 AFTER UPDATE ON tb1 FOR EACH ROW
+BEGIN
+    ...
+END
+```
+
+```sql
+DROP TRIGGER tri_after_insert_tb1;
+```
+
+示例：
+
+- 在 t1 表中插入数据之前，先在 t2 表中插入一行数据。
+
+  ```sql
+  delimiter $$
+  CREATE TRIGGER tri_before_insert_t1 BEFORE INSERT ON t1 FOR EACH ROW
+  BEGIN
+  	-- NEW.id  NEW.name  NEW.email
+  	-- INSERT INTO t2 (name) VALUES();
+  	IF NEW.name = 'alex' THEN
+          INSERT INTO t2 (name) VALUES(NEW.id);
+      END IF;
+  
+  END $$
+  delimiter ;
+  ```
+
+  ```
+  insert into t1(id,name,email)values(1,"alex","xxx@qq.com")
+  ```
+
+- 在t1表中删除数据之后，再在t2表中插入一行数据。
+
+  ```sql
+  delimiter $$
+  CREATE TRIGGER tri_after_insert_t1 AFTER DELETE ON t1 FOR EACH ROW
+  BEGIN
+  
+  IF OLD.name = 'alex' THEN
+      INSERT INTO t2 (name) VALUES(OLD.id);
+  END IF;
+  
+  END $$
+  delimiter ;
+  ```
+
+特别的：NEW表示新数据，OLD表示原来的数据。
+
+## 4.6 总结
+
+对于Python开发人员，其实在开发过程中触发器、视图、存储过程用的很少（以前搞`C#`经常写存储过程），最常用的其实就是正确的使用索引以及常见的函数。
+
+- 索引，加速查找 & 约束。
+  - `innodb`和`myisam`的区别，聚簇索引 和 非聚簇索引。
+  - 常见的索引：主键、唯一、普通。
+  - 命中索引
+  - 执行计划
+- 函数，提供了一些常见操作 & 配合`SQL`语句，执行后返回结果。
+- 存储过程，一个`SQL`语句的集合，可以出发复杂的情况，最终可以返回结果 + 数据集。
+- 视图，一个虚拟的表。
+- 触发器，在表中数据行执行前后自定义一些操作。
+
+
+
+## 4.7 作业
+
+1. 根据你掌握的索引知识重新设计博客系统的表结构，让查询数据库的速度可以变得更快。
+2. 了解 函数、存储过程、触发器、视图。
+
+# day-05 Python 操作`MySQL`和实战 
+
+课程概要：
+
+- 事务
+- 锁
+- 数据库连接池
+- `SQL`工具类
+- 其他
+
+## 5.1 事务
+
+`innodb`引擎中支持事务，`myisam`不支持。
+
+```sql
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `name` varchar(32) DEFAULT NULL,
+  `amount` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+![image-20260526164448020](./assets/image-20260526164448020.png)
+
+例如：李杰 给 武沛齐 转账 100，那就会涉及2个步骤。
+
+- 李杰账户 减100
+- 武沛齐账户 加 100
+
+这两个步骤必须同时完成才算完成，并且如果第一个完成、第二步失败，还是回滚到初始状态。
+
+事务，就是来解决这种情况的。  大白话：要成功都成功；要失败都失败。
+
+事务的具有四大特性（ACID）：
+
+- 原子性（`Atomicity`）
+
+  ```
+  原子性是指事务包含的所有操作不可分割，要么全部成功，要么全部失败回滚。
+  ```
+
+- 一致性（`Consistency`）
+
+  ```
+  执行的前后数据的**完整性**保持一致。
+  ```
+
+- 隔离性（`Isolation`）
+
+  ```
+  一个事务执行的过程中,不应该受到其他**事务**的干扰。
+  ```
+
+- 持久性（`Durability`）
+
+  ```
+  事务一旦结束,数据就持久到数据库
+  ```
+
+### 5.1.1 `MySQL`客户端
+
+先创造一些数据：
+![image-20260526165019840](./assets/image-20260526165019840.png)
+
+```
+mysql> select * from users;
++----+------+--------+
+| id | name | amount |
++----+------+--------+
+|  1 | wish |  10000 |
+|  2 | wpq  |  20000 |
++----+------+--------+
+2 rows in set (0.00 sec)
+
+mysql> begin; -- 开启事务 start transaction
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> update users set amount=amount+100 where name='wish'; -- 执行操作
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> update users set amount=amount-100 where name='wpq'; -- 执行操作
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> commit; -- 提交事务 roolback;
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> select * from users;
++----+------+--------+
+| id | name | amount |
++----+------+--------+
+|  1 | wish |  10100 |
+|  2 | wpq  |  19900 |
++----+------+--------+
+2 rows in set (0.00 sec)
+
+mysql>
+```
+
+```sql
+mysql> select * from users;
++----+---------+---------+
+| id | name    | amount  |
++----+---------+---------+
+|  1 | wupeiqi |    3    |
+|  2 |  ale x  |    8    |
++----+---------+---------+
+3 rows in set (0.00 sec)
+
+mysql> begin; -- 开启事务
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> update users set amount=amount-2 where id=1; -- 执行操作（此时数据库中的值已修改）
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> rollback; -- 事务回滚（回到原来的状态）
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select * from users;
++----+---------+---------+
+| id | name    | amount  |
++----+---------+---------+
+|  1 | wupeiqi |    3    |
+|  2 |  ale x  |    8    |
++----+---------+---------+
+3 rows in set (0.00 sec)
+```
+
+### 5.1.2 Python
+
+```python
+import pymysql
+
+conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='root123', charset="utf8", db='userdb')
+cursor = conn.cursor()
+
+# 开启事务
+conn.begin()
+
+try:
+    cursor.execute("update users set amount=1 where id=1")
+    int('asdf')
+    cursor.execute("update tran set amount=2 where id=2")
+except Exception as e:
+    # 回滚
+    print("回滚")
+    conn.rollback()
+else:
+    # 提交
+    print("提交")
+    conn.commit()
+
+cursor.close()
+conn.close()
+```
+
+## 5.2 锁
+
+在使用MySQL时，同时有很多做更新、插入、删除动作，MySQL如何保证数据不出错？
+
+MySQL中自带了锁的功能，可以帮助我们实现开发过程中遇到的同时处理数据的情况，对于数据库中的锁，从锁的范围来讲：有
+
+- 表级锁：即A操作表时，其他人对整个表都不能操作，等待A操作完之后才能操作；
+- 行级锁：即A操作表时，其他人对指定的行数据不能操作，其他行可以操作，等待A操作完之后，才能继续。
+
+```sql
+myisam 支持表锁，不支持行锁
+innodb 支持行锁和表锁
+
+即：在MYISAM下如果要加锁，无论怎么加都会是表锁。
+    在InnoDB引擎支持下如果是基于索引查询的数据则是行级锁，否则就是表锁。
+```
+
+所以，一般情况下我们会选择使用innodb引擎，并且在 搜索 时也会使用索引（命中索引）。
+
+接下来的操作就基于`innodb`引擎来操作：
+
+```sql
+CREATE TABLE `L1` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `count` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+```
+
+![image-20260526170311550](./assets/image-20260526170311550.png)
+
+在innodb引擎中，update、insert、delete的行为内部都会先申请锁（排它锁），申请到之后才执行相关操作，最后再释放锁。
+
+```
+所以，当多个人同时像数据库执行：insert、update、delete等操作时，内部加锁后会排队逐一执行。
+```
+
+而select则默认不会申请锁。
+
+```
+select * from xxx;
+```
+
+如果要让select去申请锁，则需要配合 事务+ 特殊语法来实现。
+
+- `for update`，排它锁，加锁之后，其他不可读写
+
+  ```
+  begin;
+  	select * from l1 where name='xxx' for update; -- name 列不是索引 （表锁）
+  commit;
+  ```
+
+  ```
+  begin; -- 或者 start transaction;
+  	select * from l1 where id=123 for update; -- id 列是索引 （行锁）
+  commit;
+  ```
+
+- `lock in share mode`，共享锁，加锁之后，其他可读但不可写
+
+  ```
+  begin;
+  	select * from l1 where name='xxx' lock in share mode; -- name 列不是索引 （表锁）
+  commit;
+  ```
+
+  ```
+  begin;  -- 或者 start transaction;
+  	select * from l1 where id=1 lock in share mode; -- name 列不是索引 （表锁）
+  commit;
+  ```
+
+### 5.2.1 排它锁
+
+排它锁（for update）加锁之后，其他事务不可以读写。
+
+应用场景：总共 100 件商品，每次购买一件需要让商品数 -1
+
+```sql
+A: 访问页面查看商品剩余 100
+B: 访问页面查看商品剩余 100
+
+此时 A、B 同时下单，那么他们同时执行SQL：
+	update goods set count=count-1 where id=3
+由于Innodb引擎内部会加锁，所以他们两个即使同一时刻执行，内部也会排序逐步执行。
+
+
+但是，当商品剩余 1个时，就需要注意了。
+A: 访问页面查看商品剩余 1
+B: 访问页面查看商品剩余 1
+
+此时 A、B 同时下单，那么他们同时执行SQL：
+	update goods set count=count-1 where id=3
+这样剩余数量就会出现 -1，很显然这是不正确的，所以应该怎么办呢？
+
+
+这种情况下，可以利用 排它锁，在更新之前先查询剩余数量，只有数量 >0 才可以购买，所以，下单时应该执行：
+	begin; -- start transaction;
+	select count from goods where id=3 for update;
+	-- 获取个数进行判断
+	if 个数>0:
+		update goods set count=count-1 where id=3;
+	else:
+		-- 已售罄
+	commit;
+```
+
+基于python代码实现：
+
+```python
+import pymysql
+import threading
+
+
+def task():
+    conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='root123', charset="utf8", db='userdb')
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    # cursor = conn.cursor()
+	
+    # 开启事务
+    conn.begin()
+
+    cursor.execute("select id,age from tran where id=2 for update")
+    # fetchall   -->   ( {"id":1,"age":10},{"id":2,"age":10}, )   ((1,10),(2,10))
+    # {"id":1,"age":10}   (1,10)
+    result = cursor.fetchone()
+    current_age = result['age']
+    
+    if current_age > 0:
+        cursor.execute("update tran set age=age-1 where id=2")
+    else:
+        print("已售罄")
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+
+def run():
+    for i in range(5):
+        t = threading.Thread(target=task)
+        t.start()
+
+
+if __name__ == '__main__':
+    run()
+```
+
+### 5.2.2 共享锁
+
+共享锁（ `lock in share mode`），可以读，但不允许写。
+
+加锁之后，后续其他事物可以可以进行读，但不允许写（update、delete、insert），因为写的默认也会加锁。
+
+
+
+**Locking Read Examples**
+
+Suppose that you want to insert a new row into a table `child`, and make sure that the child row has a parent row in table `parent`. Your application code can ensure referential integrity throughout this sequence of operations.
+
+First, use a consistent read to query the table `PARENT` and verify that the parent row exists. Can you safely insert the child row to table `CHILD`? No, because some other session could delete the parent row in the moment between your `SELECT` and your `INSERT`, without you being aware of it.
+
+To avoid this potential issue, perform the [`SELECT`](https://dev.mysql.com/doc/refman/5.7/en/select.html) using `LOCK IN SHARE MODE`:
+
+```sql
+SELECT * FROM parent WHERE NAME = 'Jones' LOCK IN SHARE MODE;
+```
+
+After the `LOCK IN SHARE MODE` query returns the parent `'Jones'`, you can safely add the child record to the `CHILD` table and commit the transaction. Any transaction that tries to acquire an exclusive lock in the applicable row in the `PARENT` table waits until you are finished, that is, until the data in all tables is in a consistent state.
+
+## 5.3 数据库连接池
+
+![image-20260528134040510](./assets/image-20260528134040510.png)
+
+在操作数据库时需要使用数据库连接池。
+
+```python
+pip install pymysql
+pip install dbutils
+```
+
+```python
+import threading
+import pymysql
+from dbutils.pooled_db import PooledDB
+
+MYSQL_DB_POOL = PooledDB(
+    creator=pymysql,  # 使用链接数据库的模块
+    maxconnections=5,  # 连接池允许的最大连接数，0和None表示不限制连接数
+    mincached=2,  # 初始化时，链接池中至少创建的空闲的链接，0表示不创建
+    maxcached=3,  # 链接池中最多闲置的链接，0和None不限制
+    blocking=True,  # 连接池中如果没有可用连接后，是否阻塞等待。True，等待；False，不等待然后报错
+    setsession=[],  # 开始会话前执行的命令列表。如：["set datestyle to ...", "set time zone ..."]
+    ping=0,
+    # ping MySQL服务端，检查是否服务可用。
+    # 如：0 = None = never, 1 = default = whenever it is requested, 
+    # 2 = when a cursor is created, 4 = when a query is executed, 7 = always
+    host='127.0.0.1',
+    port=3306,
+    user='root',
+    password='root123',
+    database='userdb',
+    charset='utf8'
+)
+
+
+def task():
+    # 去连接池获取一个连接
+    conn = MYSQL_DB_POOL.connection()
+    # cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    cursor.execute('select sleep(2)')
+    result = cursor.fetchall()
+    print(result)
+
+    cursor.close()
+    # 将连接交换给连接池
+    conn.close()
+
+def run():
+    for i in range(10):
+        t = threading.Thread(target=task)
+        t.start()
+
+
+if __name__ == '__main__':
+    run()
+
+```
+
+## 5.4 SQL 工具类
+
+基于数据库连接池开发一个公共的SQWL操作类，方便以后操作数据库。
+
+### 5.4.1 单例和方法
+
+```python
+# db.py
+import pymysql
+from dbutils.pooled_db import PooledDB
+
+
+class DBHelper(object):
+
+    def __init__(self):
+        # TODO 此处配置，可以去配置文件中读取。
+        self.pool = PooledDB(
+            creator=pymysql,  # 使用链接数据库的模块
+            maxconnections=5,  # 连接池允许的最大连接数，0和None表示不限制连接数
+            mincached=2,  # 初始化时，链接池中至少创建的空闲的链接，0表示不创建
+            maxcached=3,  # 链接池中最多闲置的链接，0和None不限制
+            blocking=True,  # 连接池中如果没有可用连接后，是否阻塞等待。True，等待；False，不等待然后报错
+            setsession=[],  # 开始会话前执行的命令列表。如：["set datestyle to ...", "set time zone ..."]
+            ping=0,
+            # ping MySQL服务端，检查是否服务可用。# 如：0 = None = never, 1 = default = whenever it is requested, 2 = when a cursor is created, 4 = when a query is executed, 7 = always
+            host='127.0.0.1',
+            port=3306,
+            user='root',
+            password='root123',
+            database='userdb',
+            charset='utf8'
+        )
+
+    def get_conn_cursor(self):
+        conn = self.pool.connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        return conn, cursor
+
+    def close_conn_cursor(self, *args):
+        for item in args:
+            item.close()
+
+    def exec(self, sql, **kwargs):
+        conn, cursor = self.get_conn_cursor()
+
+        cursor.execute(sql, kwargs)
+        conn.commit()
+
+        self.close_conn_cursor(conn, cursor)
+
+    def fetch_one(self, sql, **kwargs):
+        conn, cursor = self.get_conn_cursor()
+
+        cursor.execute(sql, kwargs)
+        result = cursor.fetchone()
+
+        self.close_conn_cursor(conn, cursor)
+        return result
+
+    def fetch_all(self, sql, **kwargs):
+        conn, cursor = self.get_conn_cursor()
+
+        cursor.execute(sql, kwargs)
+        result = cursor.fetchall()
+
+        self.close_conn_cursor(conn, cursor)
+
+        return result
+
+
+db = DBHelper()
+```
+
+```python
+from db import db
+
+db.exec("insert into d1(name) values(%(name)s)", name="武沛齐666")
+
+ret = db.fetch_one("select * from d1")
+print(ret)
+
+ret = db.fetch_one("select * from d1 where id=%(nid)s", nid=3)
+print(ret)
+
+ret = db.fetch_all("select * from d1")
+print(ret)
+
+ret = db.fetch_all("select * from d1 where id>%(nid)s", nid=2)
+print(ret)
+```
+
+### 5.4.2 上下文管理
+
+如果你想要让他也支持 with 上下文管理。
+
+```python
+with 获取连接：
+	执行SQL（执行完毕后，自动将连接交还给连接池）
+```
+
+```python
+# db_context.py
+import threading
+import pymysql
+from dbutils.pooled_db import PooledDB
+
+POOL = PooledDB(
+    creator=pymysql,  # 使用链接数据库的模块
+    maxconnections=5,  # 连接池允许的最大连接数，0和None表示不限制连接数
+    mincached=2,  # 初始化时，链接池中至少创建的空闲的链接，0表示不创建
+    maxcached=3,  # 链接池中最多闲置的链接，0和None不限制
+    blocking=True,  # 连接池中如果没有可用连接后，是否阻塞等待。True，等待；False，不等待然后报错
+    setsession=[],  # 开始会话前执行的命令列表。如：["set datestyle to ...", "set time zone ..."]
+    ping=0,
+    host='127.0.0.1',
+    port=3306,
+    user='root',
+    password='root123',
+    database='userdb',
+    charset='utf8'
+)
+
+
+class Connect(object):
+    def __init__(self):
+        self.conn = conn = POOL.connection()
+        self.cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cursor.close()
+        self.conn.close()
+
+    def exec(self, sql, **kwargs):
+        self.cursor.execute(sql, kwargs)
+        self.conn.commit()
+
+    def fetch_one(self, sql, **kwargs):
+        self.cursor.execute(sql, kwargs)
+        result = self.cursor.fetchone()
+        return result
+
+    def fetch_all(self, sql, **kwargs):
+        self.cursor.execute(sql, kwargs)
+        result = self.cursor.fetchall()
+        return result
+
+```
+
+```python
+from db_context import Connect
+
+with Connect() as obj:
+    # print(obj.conn)
+    # print(obj.cursor)
+    ret = obj.fetch_one("select * from d1")
+    print(ret)
+
+    ret = obj.fetch_one("select * from d1 where id=%(id)s", id=3)
+    print(ret)
+
+```
+
+## 5.5 其他
+
+navicat，是一个桌面应用，让我们可以更加方便的管理MySQL数据库。
+
+
+
+- mac系统：https://www.macdo.cn/17030.html
+- win系统：
+  - 链接: https://pan.baidu.com/s/13cjbrBquz9vjVqKgWoCQ1w  密码: qstp
+  - 链接: https://pan.baidu.com/s/1JULIIwQA5s0qN98KP8UXHA  密码: p18f
+
+
+
+# 大作业：开发博客系统
+
+> 请基于你掌握的所有技能，实现 day03 博客系统的所有功能。
+
+
+
+根据如下的业务需求设计相应的表结构，内部需涵盖如下功能。
+
+- 注册
+- 登录
+- 发布博客
+- 查看博客列表，显示博客标题、创建时间、阅读数量、评论数量、赞数量等。（支持分页查看）
+- 博客详细，显示博文详细、评论 等。
+  - 发表评论
+  - 赞 or 踩
+  - 阅读数量 + 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
