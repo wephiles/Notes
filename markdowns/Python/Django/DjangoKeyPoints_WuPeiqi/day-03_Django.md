@@ -404,13 +404,160 @@ def modal_add_class(request):
 
 # 3. Ajax
 
-```python
-# TODO: 学员管理之用Ajax创建班级 -- 要引入 jQuery
+以班级管理为例。
+
+要跳转：
+
+```js
+location.href = '要跳转的地址'
 ```
 
+```python
+def modal_add_class(request):
+    title = request.POST.get('title')
+    if title is not None and len(title) > 0:
+        with MysqlConnector() as connect:
+            conn = connect.conn
+            cursor = connect.cursor
+            cursor.execute('insert into class(title) values(%s)', (title,))
+            conn.commit()
+        return JsonResponse({
+            'status': True,
+            'code': 200,
+            'msg': 'Successfully insert data to trainee.class.'
+        })
+    return JsonResponse({
+        'status': False,
+        'code': 400,
+        'errors': '这个字段不能为空',
+    })
+```
 
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .hide {
+            display: none;
+        }
 
+        .shadow {
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background-color: black;
+            opacity: 0.4;
+            z-index: 999;
+        }
 
+        .modal {
+            z-index: 1000;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            height: 300px;
+            width: 500px;
+            background-color: white;
+            margin-left: -250px;
+            margin-top: -150px;
+        }
+
+    </style>
+</head>
+<body>
+<h1>班级列表</h1>
+
+<a href="/add/class/">添 加</a>
+<button type="button" onclick="showModal();">模态框添加</button>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>id</th>
+        <th>title</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in data %}
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.title }}</td>
+            <td>
+                <a href="">详情</a>
+                <a href="/update/class?cid={{ item.id }}">编辑</a>
+                <a href="/delete/class?cid={{ item.id }}">删除</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+
+</table>
+
+<!-- 遮罩层 模态框 -->
+<div id="shadow" class="shadow hide">
+</div>
+<div id="modal" class="modal hide">
+
+    <p>
+        <label>
+            班级名<input type="text" placeholder="班级名" name="title" id="title"/>
+            <span id="error-text" style="color: red;"></span>
+        </label>
+    </p>
+
+    <p>
+        <button type="button" onclick="AjaxSend();">提 交</button>
+        <button type="button" onclick="cancelModal();">取 消</button>
+    </p>
+
+</div>
+
+<script src="/static/js/jquery-4.0.0.min.js"></script>
+<script>
+    function showModal() {
+        document.getElementById('shadow').classList.remove('hide');
+        document.getElementById('modal').classList.remove('hide');
+    }
+
+    function AjaxSend() {
+        $.ajax({
+            url: '/modal/add/class/',
+            type: 'post',
+            data: {'title': $('#title').val()},
+            success: function (response_data) {
+                // 当服务端处理完毕，将数据返回到前端时该函数自动调用 response_data 是服务端返回的值
+                // response_data = {status: true, code: 200, msg: 'Successfully insert data to trainee.class.'}
+                // response_data = { 'status': false, 'code': 400, 'errors': '这个字段不能为空', }
+                if (response_data.status) {
+                    // 新增数据成功
+                    // 跳转到 /class/list/
+                    location.href = '/class/list/';
+                } else {
+                    // 新增数据失败
+                    $("#error-text").text(response_data.errors)
+                }
+            }
+        })
+    }
+    function cancelModal() {
+        document.getElementById('shadow').classList.add('hide');
+        document.getElementById('modal').classList.add('hide');
+    }
+</script>
+</body>
+</html>
+
+```
+
+![image-20260530111725694](./assets/image-20260530111725694.png)
+
+![image-20260530111735366](./assets/image-20260530111735366.png)
 
 
 

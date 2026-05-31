@@ -6,6 +6,7 @@
 - [x] Python多进程,多线程,协程 👉 [Wupeiqi_PythonProcessThreading](E:\Notes\markdowns\Python\MultiProcess_and_multiThread\Wupeiqi_PythonProcessThreading.md)
 - [x] 迭代器装饰器可迭代对象 👉
 - [x] MySQL 👉 [MySQL](E:\Notes\markdowns\Database\WuPeiqi_MySQL\MySQL.md)
+- [ ] 数据库三范式
 - [ ] Python网络编程
 - [ ] SQLAlchemy
 - [ ] HTTP/HTTPS
