@@ -268,7 +268,26 @@ path('upload/file/', uploads.upload_file),
 path('upload/form/', uploads.upload_form),
 ```
 
+```
+class Boss(models.Model):
+    name = models.CharField(
+        verbose_name='姓名',
+        max_length=32,
+    )
+    age = models.SmallIntegerField(
+        verbose_name='年龄',
+    )
+    img = models.CharField(verbose_name='头像', max_length=256)
+```
+
+
+
 ```python
+class FileUploadForm(BootStrapForm):
+    name = forms.CharField(label='姓名', max_length=16)
+    age = forms.IntegerField(label='年龄')
+    img = forms.FileField(label='头像')
+
 def upload_form(request):
     if request.method == 'GET':
         form = FileUploadForm()
@@ -319,6 +338,8 @@ def upload_form(request):
 ```python
 from django.urls import path, re_path
 from django.conf import settings
+from django.views.static import serve
+
 
 urlpatterns = [
     re_path(r'^media(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}, name='media'),
@@ -380,7 +401,7 @@ def upload_form(request):
             # 数据库直接从 /static/ 存起更容易拼接, 因为我们的真是图片地址应该是 http://127.0.0.1:8000/static/imgs/name.png
             # 可以看出来没有 app 的路径 所以此处存 db_file_path
         )
-
+		
         return HttpResponse(f"<h1>Upload new File {form.cleaned_data['name']}</h1>")
     else:
         return render(request, 'upload_form.html', {'form': form})
@@ -421,8 +442,6 @@ HTML文件同 ## 2.4 案例：混合数据（Form）
             </form>
         </div>
     </div>
-
-
 </div>
 {% endblock %}
 
@@ -430,7 +449,7 @@ HTML文件同 ## 2.4 案例：混合数据（Form）
 ```
 
 ```python
-# modals.py
+# models.py
 
 class City(models.Model):
     name = models.CharField(

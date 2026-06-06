@@ -1,0 +1,8 @@
+jQuery cookie:
+	https://github.com/js-cookie/js-cookie
+
+Bootstrap:
+	https://v5.bootcss.com/docs/getting-started/download/
+
+jQuery:
+	https://jquery.com/download/

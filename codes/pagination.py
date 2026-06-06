@@ -36,8 +36,8 @@ class Pagination:
 
         def your_view(request):
             # 查询你的所有需要展示的数据
-            query_sets_all = models.User.objects.all()
-
+            need_show_objs = models.User.objects.all()
+			
             # 分页
             paginator = Pagination(request, need_show_objs)
 
@@ -45,19 +45,22 @@ class Pagination:
                 request,
                 'your_show_html_files.html',
                 {
-                    'query_sets': paginator.query_sets,
-                    'html_string': paginator.html,
+                    'query_sets': paginator.query_sets,  # 这个值是必须的, 需要传到前端进行数据展示
+                    'html_string': paginator.html,  # 这个是必须传的, 分页组件
                 }
             )
 
         ```
     2. 在你的前端 HTML 文件中:
         ```html
-
         ...
-            <div class="row">
-                {{html_string}}
-            </div>
+        <table>
+            在你想展示的地方循环展示数据.
+        </table>
+        ...
+        <div class="row">
+            {{html_string}}
+        </div>
         ...
 
         ```

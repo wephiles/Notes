@@ -1,5 +1,7 @@
 <h1 style="text-align: center;font-size: 40px; font-family: Source Code Pro;">day-05.Django</h1>
 
+[TOC]
+
 今日内容：
 
 - Bootstrap
@@ -1405,13 +1407,161 @@ body {
 
 # 3. cookie
 
+`cookie` 是**保存在用户浏览器端**的**键值对**。
 
+cookie：
 
+- 保存在浏览器端的键值对 
+- 服务端可以向浏览器写 `cookie`
+- 客户端每次发请求时都会携带 `cookie` 去
 
+![image-20260601204426728](./assets/image-20260601204426728.png)
 
+cookie 的应用：
 
+1. 投票
+2. 用户登录
 
+## 3.1 cookie 小试牛刀
 
+```python
+# 视图函数
+def login(request):
+    if request.method == 'GET':
+        return render(request, 'login.html')
+    name = request.POST.get('name')
+    password = request.POST.get('password')
+    if name == 'jack' and password == '123456':
+        # 登录成功
+        obj = redirect('/class/list/')
+        obj.set_cookie('ticket', 'a-random-string')
+        return obj
+    else:
+        return render(request, 'login.html')
+```
+
+```python
+# 视图函数 - 访问页面检查是否有 cookie 如果没有就不让访问
+def class_list(request):
+    # 去请求中的 cookie 中获取凭证 有凭证则允许访问 否则直接重定向回登录页面
+    tk = request.COOKIES.get('ticket')
+    if not tk:
+        return redirect('/login/')
+
+    # 连接数据库 获取所有数据
+    ...
+    return render(request, 'class_list.html', {'data': data})
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/css/bootstrap-5.3.8-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/plugins/fontawesome-free-7.2.0-web/css/all.css">
+</head>
+<body>
+<div class="container">
+    {#<div class="card" style="width: 500px; margin: 0 auto;">#}
+    <!-- 让 card 在 container 里面居中 上面的方式和下面的方式都可以  -->
+    <div class="card mx-auto mt-5" style="width: 450px;">
+        <div class="card-header">
+            用户登录
+        </div>
+        <div class="card-body">
+            <form action="/login/" method="post" novalidate>
+                <div class="mb-3">
+                    <label for="exampleInputEmail1" class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="exampleInputEmail1" name="name" placeholder="用户名">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-label">密码</label>
+                    <input type="password" class="form-control" id="exampleInputPassword1" name="password"
+                           placeholder="密码">
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">提 交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+```
+
+## 3.2 set_cookie 方法
+
+```python
+def set_cookie(
+    self,
+    key,
+    value="",
+    max_age=None,
+    expires=None,
+    path="/",
+    domain=None,
+    secure=False, # Https
+    httponly=False,  # 只能在 Http 请求中传入 Js代码无法获取到
+    samesite=None,
+): 
+# max_age: 设置超时时间 单位为秒
+# expires参数: 可以写具体超时的日期
+# path参数: 指定url才能访问set的cookie 默认为/,所有路径都能访问
+# domain: 可以访问到cookie的域名
+```
+
+## 3.3 cookie签名
+
+```python
+def class_list(request):
+    # # 去请求中的 cookie 中获取凭证 有凭证则允许访问 否则直接重定向回登录页面
+    # tk = request.COOKIES.get('ticket')
+    # if not tk:
+    #     return redirect('/login/')
+
+    tk = request.get_signed_cookie('ticket', salt='salt random string')
+    print(tk)  # random string
+
+    if not tk:
+        return redirect('/login/')
+    data = ...
+    return render(request, 'class_list.html', {'data': data})
+```
+
+```python
+def login(request):
+    if request.method == 'GET':
+        return render(request, 'login.html')
+    name = request.POST.get('name')
+    password = request.POST.get('password')
+    if name == 'jack' and password == '123456':
+        # 登录成功
+        # redirect HttpResponse render 都有这种写法
+        obj = redirect('/class/list/')
+        # # max_age: 设置超时时间 单位为秒
+        # # expires参数: 可以写具体超时的日期
+        # # path参数: 指定url才能访问set的cookie 默认为/,所有路径都能访问
+        # # domain: 可以访问到cookie的域名
+        # obj.set_cookie(
+        #     'ticket',
+        #     'fd9s8ds955541gtjukjuiu1sa5d616a5sd6as165as16516f5e14fsfsdsfddfsytgn',
+        #     max_age=10
+        # )
+
+        obj.set_signed_cookie(
+            'ticket',
+            'random string',
+            salt='salt random string'
+        )
+        return obj
+    else:
+        return render(request, 'login.html')
+```
+
+也可以自定义签名。
 
 
 

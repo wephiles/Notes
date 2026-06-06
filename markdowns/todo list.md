@@ -6,14 +6,17 @@
 - [x] Python多进程,多线程,协程 👉 [Wupeiqi_PythonProcessThreading](E:\Notes\markdowns\Python\MultiProcess_and_multiThread\Wupeiqi_PythonProcessThreading.md)
 - [x] 迭代器装饰器可迭代对象 👉
 - [x] MySQL 👉 [MySQL](E:\Notes\markdowns\Database\WuPeiqi_MySQL\MySQL.md)
+- [ ] Python 正则表达式
 - [ ] 数据库三范式
 - [ ] Python网络编程
 - [ ] SQLAlchemy
 - [ ] HTTP/HTTPS
+- [ ] socket
+- [ ] TCP
+- [ ] UDP
 - [ ] yield
 - [ ] yield from
 - [ ] CI/CD
-- [ ] SQLAlchemy
 - [ ] matplotlib
 - [ ] seaborn
 - [ ] 深拷贝浅拷贝 👉 [Copy_And_DeepCopy](E:\Notes\markdowns\Python\Advanced\Copy_And_DeepCopy.md)
