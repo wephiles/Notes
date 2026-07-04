@@ -268,7 +268,26 @@ path('upload/file/', uploads.upload_file),
 path('upload/form/', uploads.upload_form),
 ```
 
+```
+class Boss(models.Model):
+    name = models.CharField(
+        verbose_name='姓名',
+        max_length=32,
+    )
+    age = models.SmallIntegerField(
+        verbose_name='年龄',
+    )
+    img = models.CharField(verbose_name='头像', max_length=256)
+```
+
+
+
 ```python
+class FileUploadForm(BootStrapForm):
+    name = forms.CharField(label='姓名', max_length=16)
+    age = forms.IntegerField(label='年龄')
+    img = forms.FileField(label='头像')
+
 def upload_form(request):
     if request.method == 'GET':
         form = FileUploadForm()
@@ -319,6 +338,8 @@ def upload_form(request):
 ```python
 from django.urls import path, re_path
 from django.conf import settings
+from django.views.static import serve
+
 
 urlpatterns = [
     re_path(r'^media(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}, name='media'),
@@ -380,7 +401,7 @@ def upload_form(request):
             # 数据库直接从 /static/ 存起更容易拼接, 因为我们的真是图片地址应该是 http://127.0.0.1:8000/static/imgs/name.png
             # 可以看出来没有 app 的路径 所以此处存 db_file_path
         )
-
+		
         return HttpResponse(f"<h1>Upload new File {form.cleaned_data['name']}</h1>")
     else:
         return render(request, 'upload_form.html', {'form': form})
@@ -421,8 +442,6 @@ HTML文件同 ## 2.4 案例：混合数据（Form）
             </form>
         </div>
     </div>
-
-
 </div>
 {% endblock %}
 
@@ -430,7 +449,7 @@ HTML文件同 ## 2.4 案例：混合数据（Form）
 ```
 
 ```python
-# modals.py
+# models.py
 
 class City(models.Model):
     name = models.CharField(
@@ -605,17 +624,18 @@ class City(models.Model):
 https://github.com/wephiles/python_course_fork_wupeiqi
 ```
 
-- Python基础
+- Python基础 ✅
   ```
   【2020 python 3.9 全新教程【武沛齐单独录制】- 路飞学城&老男孩python全栈】https://www.bilibili.com/video/BV1m54y1r7zE
   ```
 
-- 并发编程（进程线程协程）
+- 并发编程（进程线程协程）✅
   ```
   【彻底搞懂 python进程和线程】https://www.bilibili.com/video/BV1Ev411G7i3
   【asyncio到底是个啥？【python async await】】https://www.bilibili.com/video/BV1NA411g7yf
+  武沛齐老师的博客 - 协程（知乎） - https://www.cnblogs.com/shaji/p/18804846
   ```
-
+  
 - MySQL数据库
   ```
   【MySQL数据库教程（2021最新版）】https://www.bilibili.com/video/BV15R4y1b7y9
@@ -675,85 +695,31 @@ https://github.com/wephiles/python_course_fork_wupeiqi
   【10天快速学会【爬虫】 +【 数据分析】实战】https://www.bilibili.com/video/BV1tE411F7do
   ```
 
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- `celery`
+
+  ```
+  【快速搞定---异步框架celery】https://www.bilibili.com/video/BV1jg4y13718?vd_source=2c9a5d5590d3759367594e264ff079c4
+  ```
+
+- 迭代器  生成器 可迭代对象 ✅
+  ```
+  【15分钟彻底搞懂迭代器、可迭代对象、生成器【python迭代器】】https://www.bilibili.com/video/BV1BT4y1P7nn
+  ```
+
+- 装饰器 
+  ```
+  【【专题】彻底学会Python装饰器】https://www.bilibili.com/video/BV1Vv411x7hj
+  【【python】装饰器超详细教学，用尽毕生所学给你解释清楚，以后再也不迷茫了！】https://www.bilibili.com/video/BV1Gu411Q7JV
+  【30分钟搞定Python装饰器】https://www.bilibili.com/video/BV12ukRYCEz9
+  ```
+
+- `Golang`
+
+  ```
+  【69天，go开发全套教程【golang，连载中】】https://www.bilibili.com/video/BV1u5411W79w
+  ```
+
+- 面向对象
+  ```
+  【3天专题搞定 python面向对象（真的，再学不会就可以放弃OOP了）】https://www.bilibili.com/video/BV18E411V7ku
+  ```
