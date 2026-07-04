@@ -72,7 +72,7 @@
   },
   "Codegeex.Privacy": true,
   "Codegeex.License": "",
-  "cSpell.userWords": ["wephiles"],
+  "cSpell.userWords": ["Consolas", "wephiles"],
   "editor.defaultFormatter": "esbenp.prettier-vscode", // 设置默认格式化工具为 Prettier
   "[python]": {
     // 针对 Python 文件的特定设置 -- 设置默认格式化工具为 Black
@@ -88,6 +88,11 @@
     "interval": 3600, // 图片轮播间隔 -- 60 分钟
     "random": true,
   },
+  "workbench.editorAssociations": {
+    "*.copilotmd": "vscode.markdown.preview.editor",
+    "*.png": "gryc.viewer",
+  },
 }
+
 
 

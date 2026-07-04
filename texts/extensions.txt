@@ -1,5 +1,6 @@
 adpyke.codesnap
 aminer.codegeex
+aykutsarac.jsoncrack-vscode
 christian-kohler.path-intellisense
 codeadamca.livecode
 codeinchinese.englishchinesedictionary
@@ -31,7 +32,9 @@ shaobeichen.gradient-theme
 streetsidesoftware.code-spell-checker
 usernamehw.errorlens
 vscode-icons-team.vscode-icons
+vscode-infra.image-viewer
 wayou.vscode-todo-highlight
+your-name.fake-type
 yzhang.markdown-all-in-one
 zhongjun.woodfish-theme
 zhuangtongfa.material-theme

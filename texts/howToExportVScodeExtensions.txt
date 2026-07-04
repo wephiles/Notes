@@ -1,0 +1,4 @@
+// 这里记录了 VScode 上一些好用的插件
+// 使用CMD: code --list-extensions > extensions.txt 生成:
+// 使用CMD安装别人分享的插件: FOR /F %i IN (extensions.txt) DO code --install-extension %i
+
