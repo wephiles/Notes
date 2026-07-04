@@ -1,0 +1,93 @@
+// 这里记录了 VScode 的配置文件
+
+{
+  "workbench.colorTheme": "Gradient Atom One Dark",
+  "workbench.iconTheme": "material-icon-theme",
+  "material-icon-theme.enableLogging": true,
+  "files.autoSave": "afterDelay",
+  "files.autoGuessEncoding": true,
+  "workbench.list.smoothScrolling": true,
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.smoothScrolling": true,
+  "editor.cursorBlinking": "smooth",
+  "editor.mouseWheelZoom": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": true,
+  "editor.formatOnSave": true,
+  "editor.wordWrap": "on",
+  "editor.guides.bracketPairs": true,
+  //"editor.bracketPairColorization.enabled": true, (此设置vscode在较新版本已默认开启)
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "editor.acceptSuggestionOnEnter": "smart",
+  "editor.suggestSelection": "recentlyUsed",
+  "window.dialogStyle": "custom",
+  "debug.showBreakpointsInOverviewRuler": true,
+  "workbench.colorCustomizations": {
+    "terminal.background": "#00000000",
+    "editorPane.background": "#1e1e1e00",
+    "editorGroupHeader.tabsBackground": "#1e1e1e00",
+    "editorGroupHeader.noTabsBackground": "#1e1e1e00",
+    "breadcrumb.background": "#1e1e1e00",
+    "editorGutter.background": "#1e1e1e00",
+    "panel.background": "#1e1e1e00",
+    "panelStickyScroll.background": "#1e1e1e00",
+    "tab.activeBackground": "#1e1e1e00",
+    "tab.unfocusedActiveBackground": "#1e1e1e00",
+    "sideBar.background": "#1e1e1ecc",
+    "sideBarTitle.background": "#1e1e1ecc",
+    "sideBarStickyScroll.background": "#1e1e1ecc",
+    "activityBar.background": "#1e1e1ecc",
+    "editor.background": "#1e1e1ecc",
+    "editorStickyScroll.background": "#1e1e1ecc",
+    "editorStickyScrollGutter.background": "#1e1e1ecc",
+    "tab.inactiveBackground": "#1e1e1ecc",
+    "tab.unfocusedInactiveBackground": "#1e1e1ecc",
+    "inlineChat.background": "#1e1e1ee6",
+    "editorWidget.background": "#1e1e1ee6",
+    "editorHoverWidget.background": "#1e1e1ee6",
+    "editorSuggestWidget.background": "#1e1e1ee6",
+    "notifications.background": "#1e1e1ee6",
+    "notificationCenterHeader.background": "#1e1e1ee6",
+    "menu.background": "#1e1e1ee6",
+    "quickInput.background": "#1e1e1ee6",
+  },
+  "terminal.integrated.gpuAcceleration": "off",
+  "terminal.integrated.fontFamily": "Source Code Pro", // 设置终端字体为 Source Code Pro
+  "terminal.integrated.fontSize": 16, // 设置终端字体大小为 18
+  "terminal.integrated.lineHeight": 1, // 设置终端行高为 1
+  "window.systemColorTheme": "dark",
+  "window.autoDetectColorScheme": false,
+  "window.controlsStyle": "custom",
+  "editor.fontSize": 16,
+  "editor.fontFamily": "'Source Code Pro', Consolas, 'Courier New', monospace",
+  "diffEditor.codeLens": true,
+  "files.insertFinalNewline": true,
+  "codesnap.showWindowTitle": true,
+  "window.zoomLevel": 1,
+  "chat.tips.enabled": false,
+  "explorer.compactFolders": false,
+  "apc.activityBar": {
+    "position": "bottom",
+    "size": 48,
+  },
+  "Codegeex.Privacy": true,
+  "Codegeex.License": "",
+  "cSpell.userWords": ["wephiles"],
+  "editor.defaultFormatter": "esbenp.prettier-vscode", // 设置默认格式化工具为 Prettier
+  "[python]": {
+    // 针对 Python 文件的特定设置 -- 设置默认格式化工具为 Black
+    "editor.defaultFormatter": "ms-python.black-formatter",
+  },
+  "background.enabled": true,
+  "background.fullscreen": {
+    // 设置背景图片全屏显示
+    "images": ["E:\\Pictures", "E:\\BackGround"], // 壁纸文件夹 也可以是壁纸文件路径 如果设置 random 为 true 则会随机选择壁纸文件夹中的壁纸
+    "opacity": 0.1,
+    "size": "cover",
+    "position": "center",
+    "interval": 3600, // 图片轮播间隔 -- 60 分钟
+    "random": true,
+  },
+}
+
+
