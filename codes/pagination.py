@@ -30,7 +30,7 @@ class Pagination:
     如何使用:
     1. 在你的视图模块中:
         ```python
-        #导入 Pagination 类
+        # 导入 Pagination 类
         from ... import Pagination
 
 
