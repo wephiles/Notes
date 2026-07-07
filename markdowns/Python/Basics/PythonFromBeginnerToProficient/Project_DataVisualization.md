@@ -650,11 +650,13 @@ plt.show()
 
 ![image-20260707222223424](./assets/image-20260707222223424.png)
 
+## 1.5 使用 `Plotly` 模拟掷骰子
 
+Plotly Express 依赖于 pandas（一个用于高效地处理数据的库），因此需要同时安装 pandas。如果前面在安装 Matplotlib 时，使用的是 python3 之类的命令，这里也要使用同样的命令.
 
+要了解使用 Plotly 可创建什么样的图形，请访问 Plotly 主页并单击 DOCS 下拉菜单中的 GRAPHING LIBRARIES，然后单击 Python 图标或在 Languages 下拉菜单中选择 Python，打开“Plotly OpenSource Graphing Library for Python”。每个示例都包含源代码，让你知道这些图形是如何生成的。
 
-
-
+> 或者直接看这个网址(针对 Python 的文档): https://plotly.com/python/
 
 
 
