@@ -391,19 +391,264 @@ plt.savefig(save_path, bbox_inches='tight')
 
 ![image-20260706220936133](./assets/image-20260706220936133.png)
 
+## 1.4 随机数据
+
+### 1.4.1 产生随机坐标的模块
+
+```python
+# 产生随机坐标的模块
+
+from random import choice
 
 
+class RandomWalk:
+    """一个生成随机游走数据的类"""
 
+    def __init__(self, num_points: int = 5000):
+        """初始化随机游走的属性"""
+        self.num_points = num_points
 
+        # 所有随机游走都始于 (0, 0)
+        self.values_x = [0]
+        self.values_y = [0]
 
+    def fill_walk(self):
+        """计算包含随机游走的所有点"""
 
+        # 不断游走, 直到列表到达指定的长度
+        while len(self.values_x) < self.num_points:
+            # 决定前进的方向和在这个方向前进的距离
+            x_directions = choice([1, -1])
+            x_distance = choice([0, 1, 2, 3, 4])
+            x_step = x_directions * x_distance
 
+            y_directions = choice([1, -1])
+            y_distance = choice([0, 1, 2, 3, 4])
+            y_step = y_directions * y_distance
 
+            # 去掉在原点的数据
+            if x_step == 0 and y_step == 0:
+                continue
 
+            # 计算下一个点的坐标
+            x = self.values_x[-1] + x_step
+            y = self.values_y[-1] + y_step
 
+            self.values_x.append(x)
+            self.values_y.append(y)
+```
 
+-----
 
+### 1.4.2 一些示例
 
+```python
+from matplotlib import pyplot as plt
+
+from random_walk import RandomWalk
+
+# 创造数据
+
+rw = RandomWalk()
+rw.fill_walk()
+
+fig, ax = plt.subplots()
+ax.plot(rw.values_x, rw.values_y, linewidth=2, color='black')
+
+plt.show()
+```
+
+![image-20260707220308337](./assets/image-20260707220308337.png)
+
+```python
+from matplotlib import pyplot as plt
+
+from random_walk import RandomWalk
+
+# 创造数据
+
+rw = RandomWalk()
+rw.fill_walk()
+
+fig, ax = plt.subplots()
+# ax.plot(rw.values_x, rw.values_y, linewidth=2, color='black')
+ax.scatter(rw.values_x, rw.values_y, c='red', s=10)
+
+# 默认情况下，Matplotlib 独立地缩放每个轴，而这将水平或垂直拉伸绘图
+# 而 set_aspect('equal') 指定两条轴上刻度的间距必须相等
+ax.set_aspect('equal')
+
+plt.show()
+```
+
+![image-20260707220556839](./assets/image-20260707220556839.png)
+
+```python
+from matplotlib import pyplot as plt
+
+from random_walk import RandomWalk
+
+# 创造数据
+
+rw = RandomWalk()
+rw.fill_walk()
+
+fig, ax = plt.subplots()
+
+point_numbers = range(rw.num_points)
+
+# ax.plot(rw.values_x, rw.values_y, linewidth=2, color='black')
+# edgecolors='none' 以删除每个点的轮廓
+ax.scatter(rw.values_x, rw.values_y, c=point_numbers, s=10, cmap=plt.cm.Blues, edgecolors='none')
+
+# 默认情况下，Matplotlib 独立地缩放每个轴，而这将水平或垂直拉伸绘图
+# 而 set_aspect('equal') 指定两条轴上刻度的间距必须相等
+ax.set_aspect('equal')
+
+plt.show()
+```
+
+![image-20260707221149370](./assets/image-20260707221149370.png)
+
+```python
+from matplotlib import pyplot as plt
+
+from random_walk import RandomWalk
+
+# 创造数据
+
+rw = RandomWalk()
+rw.fill_walk()
+
+fig, ax = plt.subplots()
+
+point_numbers = range(rw.num_points)
+
+# ax.plot(rw.values_x, rw.values_y, linewidth=2, color='black')
+# edgecolors='none' 以删除每个点的轮廓
+ax.scatter(rw.values_x, rw.values_y, c=point_numbers, s=10, cmap=plt.cm.Blues, edgecolors='none')
+
+# 默认情况下，Matplotlib 独立地缩放每个轴，而这将水平或垂直拉伸绘图
+# 而 set_aspect('equal') 指定两条轴上刻度的间距必须相等
+ax.set_aspect('equal')
+
+# 突出起点和终点
+ax.scatter(rw.values_x[0], rw.values_y[0], c='black', s=100, edgecolors='none')
+ax.scatter(rw.values_x[-1], rw.values_y[-1], c='red', s=100, edgecolors='none')
+
+plt.show()
+```
+
+![image-20260707221534910](./assets/image-20260707221534910.png)
+
+```python
+from matplotlib import pyplot as plt
+
+from random_walk import RandomWalk
+
+# 创造数据
+rw = RandomWalk()
+rw.fill_walk()
+
+fig, ax = plt.subplots()
+
+point_numbers = range(rw.num_points)
+
+# ax.plot(rw.values_x, rw.values_y, linewidth=2, color='black')
+# edgecolors='none' 以删除每个点的轮廓
+ax.scatter(rw.values_x, rw.values_y, c=point_numbers, s=10, cmap=plt.cm.Blues, edgecolors='none')
+
+# 默认情况下，Matplotlib 独立地缩放每个轴，而这将水平或垂直拉伸绘图
+# 而 set_aspect('equal') 指定两条轴上刻度的间距必须相等
+ax.set_aspect('equal')
+
+# 突出起点和终点
+ax.scatter(rw.values_x[0], rw.values_y[0], c='black', s=100, edgecolors='none')
+ax.scatter(rw.values_x[-1], rw.values_y[-1], c='red', s=100, edgecolors='none')
+
+# 隐藏坐标轴
+ax.get_xaxis().set_visible(False)
+ax.get_yaxis().set_visible(False)
+
+plt.show()
+```
+
+![image-20260707221806308](./assets/image-20260707221806308.png)
+
+### 1.4.3 **增加点的个数并调整点的大小**
+
+```python
+from matplotlib import pyplot as plt
+
+from random_walk import RandomWalk
+
+# 创造数据
+
+rw = RandomWalk(50_000)
+rw.fill_walk()
+
+fig, ax = plt.subplots()
+
+point_numbers = range(rw.num_points)
+
+# ax.plot(rw.values_x, rw.values_y, linewidth=2, color='black')
+# edgecolors='none' 以删除每个点的轮廓
+ax.scatter(rw.values_x, rw.values_y, c=point_numbers, s=1, cmap=plt.cm.Blues, edgecolors='none')
+
+# 默认情况下，Matplotlib 独立地缩放每个轴，而这将水平或垂直拉伸绘图
+# 而 set_aspect('equal') 指定两条轴上刻度的间距必须相等
+ax.set_aspect('equal')
+
+# # 突出起点和终点
+# ax.scatter(rw.values_x[0], rw.values_y[0], c='black', s=100, edgecolors='none')
+# ax.scatter(rw.values_x[-1], rw.values_y[-1], c='red', s=100, edgecolors='none')
+
+# 隐藏坐标轴
+ax.get_xaxis().set_visible(False)
+ax.get_yaxis().set_visible(False)
+
+plt.show()
+```
+
+![image-20260707222006967](./assets/image-20260707222006967.png)
+
+### 1.4.4 调整尺寸以适应屏幕
+
+```python
+from matplotlib import pyplot as plt
+
+from random_walk import RandomWalk
+
+# 创造数据
+rw = RandomWalk(50_000)
+rw.fill_walk()
+
+# =========================================================================================
+# 如果知道当前系统的分辨率，可通过参数 dpi 向 plt.subplots() 传递该分辨率
+fig, ax = plt.subplots(figsize=(15, 9), dpi=100)  # <--- 看这里 figsize 指示屏幕尺寸，单位为英寸
+
+point_numbers = range(rw.num_points)
+
+# ax.plot(rw.values_x, rw.values_y, linewidth=2, color='black')
+# edgecolors='none' 以删除每个点的轮廓
+ax.scatter(rw.values_x, rw.values_y, c=point_numbers, s=1, cmap=plt.cm.Blues, edgecolors='none')
+
+# 默认情况下，Matplotlib 独立地缩放每个轴，而这将水平或垂直拉伸绘图
+# 而 set_aspect('equal') 指定两条轴上刻度的间距必须相等
+ax.set_aspect('equal')
+
+# # 突出起点和终点
+# ax.scatter(rw.values_x[0], rw.values_y[0], c='black', s=100, edgecolors='none')
+# ax.scatter(rw.values_x[-1], rw.values_y[-1], c='red', s=100, edgecolors='none')
+
+# 隐藏坐标轴
+ax.get_xaxis().set_visible(False)
+ax.get_yaxis().set_visible(False)
+
+plt.show()
+```
+
+![image-20260707222223424](./assets/image-20260707222223424.png)
 
 
 

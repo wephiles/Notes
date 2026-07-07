@@ -275,7 +275,7 @@ npx husky add .husky/commit-msg 'npx --no-install commitlint --edit "$1"'
 
 > 💡 **小贴士**：你可以为常用的提交类型添加**emoji**表情，让提交历史更生动（但这不是约定式规范的一部分）。例如：`✨ feat`, `🐛 fix`, `📝 docs`, `♻️ refactor`, `⚡ perf`, `✅ test`, `🔧 chore`, `⏪ revert`。juejin.cn
 
-# 5. 不小心将应该忽略的文件推送到远程
+# 5. 不小心将应该忽略的文件(夹)推送到远程
 
 要解决这个问题，你需要让 Git 停止追踪这个文件夹，但**保留你本地磁盘上的实际文件**。请按照以下步骤操作：
 
