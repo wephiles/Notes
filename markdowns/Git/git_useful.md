@@ -275,6 +275,58 @@ npx husky add .husky/commit-msg 'npx --no-install commitlint --edit "$1"'
 
 > 💡 **小贴士**：你可以为常用的提交类型添加**emoji**表情，让提交历史更生动（但这不是约定式规范的一部分）。例如：`✨ feat`, `🐛 fix`, `📝 docs`, `♻️ refactor`, `⚡ perf`, `✅ test`, `🔧 chore`, `⏪ revert`。juejin.cn
 
+# 5. 关于自定义提交模板
+
+- 新建 `.gitmessage/.gitmessage.txt` 文件(建议在用户目录下)
+
+- 配置 git 指向自己新建的模板
+  ```
+  git config --global commit.template ~/.gitmessage
+  git config --global commit.template $HOME/.gitmessage.txt
+  ```
+
+- 使用
+  ```
+  git add .
+  git commit  # 注意没有 -m 参数 然后在打开的编辑器(vim/vscode等)中写就可以了
+  ```
+
+模板推荐：
+
+```python
+# <提交类型(必填)>(<影响范围(可选)>): <简短描述(50字符以内，首字母小写，结尾无句号)>
+#
+# 类型(type)必须为以下之一:
+#   feat:     新功能
+#   fix:      修复bug
+#   docs:     文档变更
+#   style:    代码格式调整（不影响逻辑）
+#   refactor: 重构（既不新增功能也不修复bug）
+#   perf:     性能优化
+#   test:     测试相关
+#   build:    构建系统或依赖变更
+#   ci:       CI配置变更
+#   chore:    其他杂项
+#
+# 正文(body)详细说明（每行不超过72字符）
+#
+#
+# 页脚(footer)用于关联Issue或描述BREAKING CHANGE:
+# 例如: Closes #123, BREAKING CHANGE: 破坏性变更描述
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
