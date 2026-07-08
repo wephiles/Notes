@@ -315,23 +315,42 @@ npx husky add .husky/commit-msg 'npx --no-install commitlint --edit "$1"'
 # 例如: Closes #123, BREAKING CHANGE: 破坏性变更描述
 ```
 
+# 6. 不小心将应该忽略的文件(夹)推送到远程
 
+要解决这个问题，你需要让 Git 停止追踪这个文件夹，但**保留你本地磁盘上的实际文件**。请按照以下步骤操作：
 
+## 1. 从 Git 的追踪缓存中移除 `.idea`
 
+在终端（或命令行）中，确保你在项目的根目录下，然后执行以下命令：
 
+```
+git rm -r --cached .idea
+```
 
+*(注意：`--cached` 参数非常重要，它的意思是只从 Git 仓库中移除这个文件夹的追踪记录，而**不会删除你本地磁盘上的物理文件**。如果不加这个参数，你本地的 .idea 文件夹就会被直接删掉。)*
 
+## 2. 提交这个移除操作
 
+将上面的更改提交到本地仓库：
 
+```
+git commit -m "Stop tracking .idea directory"
+```
 
+## 3. 推送到远程仓库
 
+将这个更改推送到远程，这样远程仓库里的 `.idea` 文件夹就会被删除，并且以后不再追踪：
 
+```
+git push
+```
 
+## 4. **！！！补充说明：**
 
+如果以后你不小心又把 `.gitignore` 没写好导致某些不需要追踪的文件被加进去了，你可以用这个万能公式清理缓存：
 
-
-
-
-
-
-
+```
+git rm -r --cached .   # 清除所有文件的追踪缓存（不会删本地文件）
+git add .              # 重新根据 .gitignore 的规则添加文件
+git commit -m "Apply .gitignore rules"
+```
