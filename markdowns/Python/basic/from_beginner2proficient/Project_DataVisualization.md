@@ -1761,65 +1761,368 @@ fig.show()
 
 ![image-20260708212505567](./assets/image-20260708212505567.png)
 
+# 3. 使用API
+
+API 是网站的一部分，用于与程序进行交互。这些程序使用非常具体的 URL 请求特定的信息，而这种请求称为 API 调用。请求的数据将以程序易于处理的格式（如 JSON 或 CSV）返回。使用外部数据源的应用程序（如集成了社交媒体网站的应用程序）大多依赖 API 调用。
+
+本章会对来自 GitHub 的信息进行可视化。你也许了解，GitHub 是一个让程序员能够协作开发项目的网站。我们将使用 GitHub 的 API 来请求有关该网站中 Python 项目的信息，再使用 Plotly 生成交互式的图形，以呈现这些项目的受欢迎程度。
+
+GitHub 的名字源自 Git，后者是一个分布式版本控制系统，帮助人们管理为项目所做的工作，避免一个人所做的修改影响其他人的工作。当你在项目中实现新功能时，Git 会跟踪你对每个文件所做的修改。确定代码可行后，你可以提交所做的修改，而 Git 将记录项目最新的状态。如果你犯了错，想撤销所做的修改，可借助 Git 轻松地回退到以前的任意一个可行状态。（要更深入地了解如何使用 Git 进行版本控制，请参阅附录 D。）GitHub 上的项目都存储在仓库（repository）中，后者包含与项目相关联的一切：代码、项目参与者的信息、问题或 bug 报告，等等。
+
+在 GitHub 上，用户不仅可以给喜欢的项目加星（star）来表示支持，还可以关注自己可能想使用的项目。在本章中，我们将编写一个程序，自动下载 GitHub 上星数最多的 Python 项目的信息，并对这些信息进行可视化。
+
+## 3.1 GitHub API
+
+### 3.1.1 使用 API 调用请求数据
+
+GitHub 的 API 让你能够通过 API 调用请求各种信息。要知道 API调用是什么样的，请在浏览器的地址栏中输入如下地址并按回车键：
+
+这个 API 调用返回 GitHub 当前托管了多少个 Python 项目，以及有关最受欢迎的 Python 仓库的信息。下面来仔细地研究这个 API 调用。开头的 https://api.github.com/ 是 GitHub 的 API 地址。接下来的 search/repositories 让 API 搜索 GitHub 上的所有仓库。
+repositories 后面的问号指出需要传递一个参数。参数 q 表示查询，而等号（=）让我们能够开始指定查询（q=）。接着，通过language:python 指出只想获取主要语言为 Python 的仓库的信息。最后的 +sort:stars 指定将项目按星数排序。
+
+下面显示了响应的前几行。
+
+```python
+{
+    "total_count": 8961993,
+    "incomplete_results": true,
+    "items": [
+        {
+        "id": 54346799,
+        "node_id": "MDEwOlJlcG9zaXRvcnk1NDM0Njc5OQ==",
+        "name": "public-apis",
+        "full_name": "public-apis/public-apis",
+        ...
+```
+
+从响应可知，该 URL 并不适合人工输入，因为它采用了适合程序处理的格式。
+
+### 3.1.2 requests
+
+```python
+pip install requests
+```
+
+### 3.1.3 处理 API 响应
+
+```python
+import requests
+
+url = 'https://api.github.com/search/repositories' + '?q=language:python+sort:stars+stars:>10000'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+
+r = requests.get(url, headers=headers)
+response_dict = r.json()
+
+print(f"Total repositories: {response_dict['total_count']}")
+
+# 探索有关仓库的信息
+repo_dicts = response_dict['items']
+print(f"Repositories returned: {len(repo_dicts)}")
+
+print("\nSelected information about each repository:")
+for repo_dict in repo_dicts:
+    print(f"\nName: {repo_dict['name']}")
+    print(f"Owner: {repo_dict['owner']['login']}")
+    print(f"Stars: {repo_dict['stargazers_count']}")
+    print(f"Repository: {repo_dict['html_url']}")
+    print(f"Description: {repo_dict['description']}")
+
+# 研究第一个仓库
+repo_dict = repo_dicts[0]
+# print(f"\n Keys: {len(repo_dict)}")
+# for key in sorted(repo_dict.keys()):
+#     print(key)
+
+print("\nSelected information about first repository:")
+print(f"Name: {repo_dict['name']}")
+print(f"Owner: {repo_dict['owner']['login']}")
+print(f"Stars: {repo_dict['stargazers_count']}")
+print(f"Repository: {repo_dict['html_url']}")
+print(f"Created: {repo_dict['created_at']}")
+print(f"Updated: {repo_dict['updated_at']}")
+print(f"Description: {repo_dict['description']}")
+
+```
+
+### 3.1.4 监控 API 的速率限制
+
+大多数 API 存在速率限制，即在特定时间内可执行的请求数存在限制。要获悉是否接近了 GitHub 的限制，请在浏览器中输入 https://api.github.com/rate_limit，你将看到类似于下面的响应：
+
+```python
+{
+    "resources": {
+    --snip--
+    "search": {
+    "limit": 10,
+    "remaining": 9,
+    "reset": 1652338832,
+    "used": 1,
+    "resource": "search"
+},
+--snip--
+```
+
+我们关心的信息是搜索 API 的速率限制。从处可知，限值为每分钟 10 个请求，而在当前的这一分钟内，还可执行 9 个请求。与键 reset 对应的值是配额将被重置的 Unix 时间或新纪元时间（从 1970 年 1 月 1 日零点开始经过的秒数）。在用完配额后，我们将收到一条简单的响应消息，得知已到达 API 的限值。到达限值后，必须等待配额重置。
+
+注意：很多 API 要求，在通过注册获得 API 密钥（访问令牌）后，才能执行 API 调用。在本书编写期间，GitHub 没有这样的要求，但获得访问令牌后，配额将高得多。
+
+### 3.1.5 使用 Plotly 可视化仓库
+
+下面使用收集到的数据来创建图形，以展示 GitHub 上 Python 项目的受欢迎程度。我们将创建一个交互式条形图，其中条形的高度表示项目获得了多少颗星，而单击条形将进入相应项目在 GitHub 上的主页。
+
+```python
+import requests
+import plotly.express as px
+
+url = 'https://api.github.com/search/repositories' + '?q=language:python+sort:stars+stars:>10000'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+
+r = requests.get(url, headers=headers)
+response_dict = r.json()
+
+print(f"Status code: {r.status_code}")
+# 处理有关仓库的信息
+repo_dicts = response_dict['items']
+repo_names, stars = [], []
+for repo_dict in repo_dicts:
+    repo_names.append(repo_dict['name'])
+    stars.append(repo_dict['stargazers_count'])
+# 可视化
+fig = px.bar(x=repo_names, y=stars)
+fig.show()
+```
+
+![image-20260711100415345](./assets/image-20260711100415345.png)
+
+```python
+import requests
+import plotly.express as px
+
+url = 'https://api.github.com/search/repositories' + '?q=language:python+sort:stars+stars:>10000'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+
+r = requests.get(url, headers=headers)
+response_dict = r.json()
+
+print(f"Status code: {r.status_code}")
+# 处理有关仓库的信息
+repo_dicts = response_dict['items']
+repo_names, stars = [], []
+for repo_dict in repo_dicts:
+    repo_names.append(repo_dict['name'])
+    stars.append(repo_dict['stargazers_count'])
+# 可视化
+title = "Most-Starred Python Projects on GitHub"
+labels = {'x': 'Repository', 'y': 'Stars'}
+fig = px.bar(x=repo_names, y=stars, title=title, labels=labels)
+fig.update_layout(title_font_size=28, xaxis_title_font_size=20,
+                  yaxis_title_font_size=20)
+fig.show()
+```
+
+![image-20260711100616341](./assets/image-20260711100616341.png)
+
+### 3.1.6 添加定制工具提示
+
+```python
+import requests
+import plotly.express as px
+
+url = 'https://api.github.com/search/repositories' + '?q=language:python+sort:stars+stars:>10000'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+
+r = requests.get(url, headers=headers)
+response_dict = r.json()
+
+print(f"Status code: {r.status_code}")
+# 处理有关仓库的信息
+repo_dicts = response_dict['items']
+repo_names, stars, hover_texts = [], [], []
+for repo_dict in repo_dicts:
+    repo_names.append(repo_dict['name'])
+    stars.append(repo_dict['stargazers_count'])
+    # 创建悬停文本
+    owner = repo_dict['owner']['login']
+    description = repo_dict['description']
+    hover_text = f"{owner}<br />{description}"
+    hover_texts.append(hover_text)
+# 可视化
+title = "Most-Starred Python Projects on GitHub"
+labels = {'x': 'Repository', 'y': 'Stars'}
+fig = px.bar(x=repo_names, y=stars, title=title, labels=labels, hover_name=hover_texts)
+fig.update_layout(title_font_size=28, xaxis_title_font_size=20,
+                  yaxis_title_font_size=20)
+fig.show()
+```
 
 
 
+![image-20260711100902584](./assets/image-20260711100902584.png)
 
+### 3.1.7 添加可单击的链接
 
+Plotly 允许在文本元素中使用 HTML，这让你能够轻松地在图形中添加链接。下面将 x 轴标签作为链接，让观看者能够访问项目在GitHub 上的主页。为此，需要提取 URL 并使用它们来生成 x 轴标签：
 
+```python
+import requests
+import plotly.express as px
 
+url = 'https://api.github.com/search/repositories' + '?q=language:python+sort:stars+stars:>10000'
+headers = {'Accept': 'application/vnd.github.v3+json'}
 
+r = requests.get(url, headers=headers)
+response_dict = r.json()
 
+print(f"Status code: {r.status_code}")
+# 处理有关仓库的信息
+repo_dicts = response_dict['items']
+repo_names, stars, hover_texts = [], [], []
+repo_links = []
+for repo_dict in repo_dicts:
+    repo_name = repo_dict['name']
+    repo_url = repo_dict['html_url']
+    repo_link = f"<a href='{repo_url}'>{repo_name}</a>"
+    repo_links.append(repo_link)
+    repo_names.append(repo_dict['name'])
+    stars.append(repo_dict['stargazers_count'])
+    # 创建悬停文本
+    owner = repo_dict['owner']['login']
+    description = repo_dict['description']
+    hover_text = f"{owner}<br />{description}"
+    hover_texts.append(hover_text)
+# 可视化
+title = "Most-Starred Python Projects on GitHub"
+labels = {'x': 'Repository', 'y': 'Stars'}
+fig = px.bar(x=repo_links, y=stars, title=title, labels=labels, hover_name=hover_texts)
+fig.update_layout(title_font_size=28, xaxis_title_font_size=20,
+                  yaxis_title_font_size=20)
+fig.show()
+```
 
+![image-20260711101651724](./assets/image-20260711101651724.png)
 
+### 3.1.8 定制标记颜色
 
+创建图形后，可使用以 update_ 打头的方法来定制其各个方面。前面使用了 update_layout() 方法，而 update_traces() 则可用来定制图形呈现的数据。
 
+我们将条形改为更深的蓝色并且是半透明的：
 
+```python
+import requests
+import plotly.express as px
 
+url = 'https://api.github.com/search/repositories' + '?q=language:python+sort:stars+stars:>10000'
+headers = {'Accept': 'application/vnd.github.v3+json'}
 
+r = requests.get(url, headers=headers)
+response_dict = r.json()
 
+print(f"Status code: {r.status_code}")
+# 处理有关仓库的信息
+repo_dicts = response_dict['items']
+repo_names, stars, hover_texts = [], [], []
+repo_links = []
+for repo_dict in repo_dicts:
+    repo_name = repo_dict['name']
+    repo_url = repo_dict['html_url']
+    repo_link = f"<a href='{repo_url}'>{repo_name}</a>"
+    repo_links.append(repo_link)
+    repo_names.append(repo_dict['name'])
+    stars.append(repo_dict['stargazers_count'])
+    # 创建悬停文本
+    owner = repo_dict['owner']['login']
+    description = repo_dict['description']
+    hover_text = f"{owner}<br />{description}"
+    hover_texts.append(hover_text)
+# 可视化
+title = "Most-Starred Python Projects on GitHub"
+labels = {'x': 'Repository', 'y': 'Stars'}
+fig = px.bar(x=repo_links, y=stars, title=title, labels=labels, hover_name=hover_texts)
+fig.update_traces(marker_color='SteelBlue', marker_opacity=0.6)
+fig.update_layout(title_font_size=28, xaxis_title_font_size=20,
+                  yaxis_title_font_size=20)
+fig.show()
+```
 
+在 Plotly 中，trace 指的是图形上的一系列数据。update_traces() 方法接受大量的参数，其中以 marker_ 打头的参数都会影响图形上的标记。这里将每个标记的颜色都设置成了'SteelBlue'。你可将参数 marker_color 设置为任何有具体名称的 CSS 颜色。我们还将每个标记的不透明度都设置成了 0.6。不透明度值 1.0 表示完全不透明，而 0 表示完全透明
 
+![image-20260711101901172](./assets/image-20260711101901172.png)
 
+### 3.1.9 深入了解 Plotly 和 GitHub API
 
+虽然 Plotly 提供了内容丰富、条理清晰的文档，但是可能让你觉得无从下手。因此，要深入了解 Plotly，最好先阅读文章 PlotlyExpress in Python。这篇文章概述了使用 Plotly Express 可创建的所有图表类型，其中还包含一些链接，指向各种图表的详细介绍。
 
+如果要深入地了解如何定制 Plotly 图形，可阅读文章 StylingPlotly Express Figures in Python。这篇文章深入介绍了本书第 15～17 章提及的定制方式。
 
+要深入地了解 GitHub API，可参阅其文档。这样可知道如何从GitHub 中提取各种信息。要更深入地了解本章项目介绍的内容，可参阅该文档的 Search 部分。如果有 GitHub 账户，除了其他仓库的公开信息以外，你还可以提取有关自己的信息。
 
+## 3.2 Hacker News API
 
+为了探索如何使用其他网站的 API 调用，我们来看看 Hacker News网站。在这个网站上，用户分享编程和技术方面的文章，并就这些文章展开积极的讨论。Hacker News 的 API 让你能够访问有关该网站上所有文章和评论的信息，并且不要求通过注册获得密钥。
 
+下面的 API 调用返回 Hacker News 上最热门文章的信息：
 
+```python
+https://hacker-news.firebaseio.com/v0/item/31353677.json
+```
 
+如果在浏览器中输入这个 URL，你会发现响应的文章信息位于一对花括号内，表明这是一个字典。如果不调整格式，这样的响应信息难以阅读。下面像第 16 章中的地震项目那样，通过 json.dumps() 方法来处理这个 URL 的内容，以便对返回的信息进行探索：
 
+```python
+import requests
+import json
 
+# 执行 API 调用并存储响应
+url = "https://hacker-news.firebaseio.com/v0/item/31353677.json"
+r = requests.get(url)
+print(f"Status code: {r.status_code}")
+# 探索数据的结构
+response_dict = r.json()
+response_string = json.dumps(response_dict, indent=4)
+print(response_string)
+```
 
+这个字典包含很多键。与键 'descendants' 对应的值是文章被评论的次数。与键 'kids' 对应的值包含文章下所有评论的ID。每个评论本身也可能有评论，因此文章的 descendant的数量可能比其 kid 的数量多。这个字典中还包含当前文章的标题和 URL。
 
+下面的 URL 返回一个列表，其中包含 Hacker News 上当前排名靠前的文章的 ID：
 
+```python
+https://hacker-news.firebaseio.com/v0/topstories.json
+```
 
+通过这个调用，可获悉当前有哪些文章位于 Hacker News 主页上，再生成一系列类似于前面的 API 调用。使用这种方法，可概述当前位于Hacker News 主页上的每篇文章：
 
+```python
+from operator import itemgetter
+import requests
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# 执行 API 调用并查看响应
+url = "https://hacker-news.firebaseio.com/v0/topstories.json"
+r = requests.get(url)
+print(f"Status code: {r.status_code}")
+# 处理有关每篇文章的信息
+submission_ids = r.json()
+submission_dicts = []
+for submission_id in submission_ids[:5]:
+    # 对于每篇文章，都执行一个 API 调用
+    url = f"https://hacker-news.firebaseio.com/v0/item/{submission_id}.json"
+    r = requests.get(url)
+    print(f"id: {submission_id}\tstatus: {r.status_code}")
+    response_dict = r.json()
+    # 对于每篇文章，都创建一个字典
+    submission_dict = {
+        'title': response_dict['title'],
+        'hn_link': f"https://news.ycombinator.com/item?id={submission_id}",
+        'comments': response_dict['descendants'],
+    }
+    submission_dicts.append(submission_dict)
+submission_dicts = sorted(submission_dicts, key=itemgetter('comments'), reverse=True)
+for submission_dict in submission_dicts:
+    print(f"\nTitle: {submission_dict['title']}")
+    print(f"Discussion link: {submission_dict['hn_link']}")
+    print(f"Comments: {submission_dict['comments']}")
+```
 
 
 
