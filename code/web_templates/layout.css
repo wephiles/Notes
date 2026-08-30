@@ -1,0 +1,148 @@
+body {
+    margin: 0;
+}
+
+.my-hide {
+    display: none;
+}
+
+.my-left {
+    float: left;
+}
+
+.my-right {
+    float: right;
+}
+
+.my-page-header {
+    height: 48px;
+    min-width: 1190px;
+    background-color: purple;
+    /*background-color: rgb(13,202,250);*/
+    line-height: 48px;
+}
+
+.my-page-header .my-logo {
+    color: white;
+    font-size: 18px;
+    width: 200px;
+    text-align: center;
+    border-right: 1px solid gray;
+}
+
+.my-page-header .my-rheaders a {
+    display: inline-block;
+    padding: 0 10px;
+    color: white;
+    border-radius: 5px;
+}
+
+.my-page-header .my-rheaders a:hover {
+    background-color: #0d6efd;
+}
+
+.my-page-header .my-avatar {
+    padding: 0 20px;
+}
+
+
+.my-page-header .my-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-bottom: 4px;
+}
+
+.my-page-header .my-avatar .my-user-info {
+    display: none;
+    position: absolute;
+    width: 150px;
+    top: 50px;
+    right: 18px;
+    border: 1px solid #dddddd;
+    background-color: white;
+    z-index: 100;
+    border-radius: 5px;
+}
+
+.my-page-header .my-avatar:hover .my-user-info {
+    display: block;
+}
+
+.my-page-header .my-avatar .my-user-info .my-before-hr-info {
+    display: block;
+    height: 36px;
+}
+
+.my-page-header .my-avatar .my-user-info .my-hr-user-info {
+    height: 1px;
+    margin-top: 8px;
+    margin-bottom: 1px;
+}
+
+.my-page-header .my-avatar .my-user-info .my-below-hr-info {
+    display: block;
+    margin-top: 1px;
+}
+
+.my-menus {
+    width: 200px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    top: 48px;
+    background-color: #9eeaf9;
+    border-right: 1px solid #dddddd;
+}
+
+.my-page-body .my-menus a {
+    display: block;
+    padding: 10px 10px;
+    border-bottom: 2px solid #ffffff;
+}
+
+.my-content {
+    position: absolute;
+    left: 200px;
+    top: 48px;
+    bottom: 0;
+    right: 0;
+    min-width: 990px;
+    overflow: scroll;
+    z-index: 99;
+}
+
+.my-page-body .my-content .my-myBrandNav {
+    height: 35px;
+}
+
+.my-page-body .my-content .myBrandNav ol {
+    line-height: 35px;
+}
+
+
+.my-page-header .my-logo a img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    margin-bottom: 4px;
+}
+
+.my-page-header .my-logo a {
+    color: #31d2f2;
+    font-size: 15px;
+}
+
+.my-page-header .my-tools-li a {
+    display: inline-block;
+    color: white;
+    padding: 0 15px;
+    border-radius: 5px;
+}
+
+.my-page-header .my-tools-li a:hover {
+
+    background-color: #0d6efd;
+}
+

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+
+
+    <link rel="stylesheet" href="/static/css/bootstrap-5.3.8-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/plugins/fontawesome-free-7.2.0-web/css/all.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    {% block css %}{% endblock %}
+</head>
+<body>
+
+<div class="my-page-header">
+    <div class="my-logo my-left">
+        <a class="navbar-brand" href="#">
+            <img src="/static/imgs/avatar.png" alt="Bootstrap"> 啥啥啥有限公司
+        </a>
+    </div>
+
+    <div class="my-left my-tools-li">
+        <a><i class="fa-solid fa-file"></i> 文件</a>
+    </div>
+    <div class="my-left my-tools-li">
+        <a><i class="fa-solid fa-screwdriver-wrench"></i> 工具2</a>
+    </div>
+    <div class="my-left my-tools-li">
+        <a><i class="fa-solid fa-calculator"></i> 工具3</a>
+    </div>
+
+    <div class="my-avatar my-right" style="position: relative;">
+        <img src="/static/imgs/avatar.png" alt="">
+        <div class="my-user-info my-hide">
+            <a type="button" class="btn my-before-hr-info" href="#">个人资料</a>
+            <a type="button" class="btn my-before-hr-info" href="#">设置中心</a>
+            <hr class="my-hr-user-info">
+            <a class="btn my-below-hr-info">注销</a>
+        </div>
+    </div>
+    <div class="my-rheaders my-right">
+        <a><i class="fa-solid fa-comment-dots"></i> 消息</a>
+        <a><i class="fa-solid fa-envelope"></i> 邮件</a>
+    </div>
+
+</div>
+
+<div class="my-page-body">
+    <div class="my-menus">
+        <a class="btn"><i class="fa-solid fa-school"></i> 班级管理 </a>
+        <a class="btn"><i class="fa-solid fa-chalkboard-user"></i> 教师管理</a>
+        <a class="btn"><i class="fa-solid fa-user-graduate"></i> 学生管理</a>
+    </div>
+    <div class="my-content">
+        <div aria-label="breadcrumb" class="container-fluid navbar-light bg-light myBrandNav">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">首页</a></li>
+                <li class="breadcrumb-item"><a href="#">班级管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">添加班级</li>
+            </ol>
+        </div>
+
+        <div class="container-fluid">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+
+{% block js %}{% endblock %}
+</body>
+</html>

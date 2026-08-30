@@ -1,0 +1,199 @@
+- [x] `Python` 内存管理 + 垃圾回收 ✅ 2026-08-01
+- [x] `git` ✅ 2026-08-01
+- [x] `git license` ✅ 2026-08-01
+- [ ] `Django`
+	- [ ] `channels`
+	- [ ] `DRF`
+	- [ ] 实践
+		- [x] `Django` 主机管理系统(面试题) ✅ 2026-08-23
+		- [ ] `Django` 本地图床系统
+		- [ ] `Django` 企业文件管理系统
+- [x] `Python` 多进程 多线程 ✅ 2026-08-15
+- [x] 迭代器装饰器可迭代对象 ✅ 2026-08-01
+- [x] `MySQL` ✅ 2026-08-01
+- [x] 异常处理基础 ✅ 2026-08-01
+- [x] `raise from` 基础 ✅ 2026-08-01
+- [x] `Python` 文档字符串 ✅ 2026-08-14
+- [x] `.gz` 格式的解压缩和文件压缩成 `.gz` 格式 ✅ 2026-08-14
+- [x] `uv` ✅ 2026-08-14
+- [ ] `Python` 单例模式
+- [ ] `PyPy`
+- [ ] `Jython`
+- [ ] `Python` 特殊文件操作
+	- [ ] `xml`
+	- [ ] `csv`
+	- [ ] `yaml`
+	- [ ] `toml`
+	- [ ] `ini`
+	- [ ] `bat`
+	- [ ] `rst`
+- [ ] 工具
+	- [ ] 代码 `diff` 工具
+- [ ] `Python` 函数
+	- [ ] `reduce`
+	- [ ] `map`
+	- [ ] `filter`
+	- [ ] 
+- [ ] `Python` 模块
+	- [ ] 内置模块
+		- [x] `pathlib` ✅ 2026-08-02
+		- [x] `argparse` 🛫 2026-08-02 ✅ 2026-08-02
+		- [x] `glob` ✅ 2026-08-02
+		- [x] `re` ✅ 2026-08-08
+		- [x] `os` ✅ 2026-08-08
+		- [x] `json` ✅ 2026-08-08
+		- [x] `subprocess` 🛫 2026-08-08 ✅ 2026-08-08
+		- [x] `shutil` ✅ 2026-08-08
+		- [x] `string` ✅ 2026-08-15
+		- [x] `tempfile` ✅ 2026-08-15
+		- [x] `threading` ✅ 2026-08-21
+		- [ ] `multiprocessing`
+		- [ ] `futures`
+		- [ ] `deque`
+		- [x] `queue` ✅ 2026-08-22
+		- [x] `logging` ✅ 2026-08-15
+		- [ ] `Pipfile`
+		- [ ] `datetime`
+		- [ ] `collections`
+		- [ ] `itertools`
+		- [ ] `functools`
+		- [ ] `click`
+		- [ ] `unittest`
+		- [ ] `doctest`
+	- [ ] 第三方模块
+		- [x] `python-dotenv` ✅ 2026-08-08
+		- [x] `uv` ✅ 2026-08-14
+		- [ ] `datasets`
+		- [ ] `psutil` 🛫 2026-08-16 
+		- [ ] `socket`
+		- [ ] `requests`
+		- [x] `tqdm` ✅ 2026-08-15
+		- [ ] `pytest`
+		- [ ] `urllib`
+		- [ ] `lxml`
+		- [ ] `numpy`
+		- [ ] `pandas`
+		- [ ] `matplotlib`
+		- [ ] `seaborn`
+		- [ ] `langdetect`
+		- [ ] `googletrans`
+		- [ ] `ruff`
+		- [ ] `pydocstyle`
+		- [ ] `interrogate`
+		- [ ] `flake8-docstrings`
+		- [ ] `pylint`
+		- [ ] `langdetect`
+		- [ ] `langid`
+		- [ ] `fasttext`
+		- [ ] `pycld2`
+		- [ ] `whatthenlang`
+		- [ ] `textblob`
+		- [ ] `polyglot`
+		- [ ] `JSONPath`
+		- [ ] `yolo`
+		- [ ] `yaml`
+		- [ ] `toml`
+		- [ ] `googletrans`
+		- [ ] `black`
+- [ ] `Python` 关键词
+	- [ ] `yield`
+	- [ ] `yield from`
+	- [x] `global` ✅ 2026-08-16
+	- [x] `nonlocal` ✅ 2026-08-16
+- [ ] `mermaid`
+- [ ] `coroutine`
+- [ ] `Python` 调用大模型 `API`
+- [ ] `python` 单元测试
+- [ ] `IDE Debug`
+- [ ] 正则表达式
+- [ ] 数据库范式
+- [ ] 网络编程
+- [ ] `SQLAlchemy`
+- [ ] `HTTP/HTTPS`
+- [ ] `socket`
+- [ ] `UDP`
+- [ ] `CI/CD`
+- [ ] 深拷贝浅拷贝
+- [ ] `Python` 协程
+- [ ] `Python` 异步 `asyncio` + `aiohttp`
+- [x] `Python` 闭包 ✅ 2026-08-11
+- [x] `Python` 装饰器 ✅ 2026-08-11
+- [ ] `FastAPI`
+- [ ] `Flask`
+- [ ] `Tornado`
+- [ ] `redis`
+- [ ] `TCP/IP`
+- [ ] `SSL证书`、防火墙
+- [ ] 算法
+	- [ ] `AC` 自动机
+	- [ ] `Trie` 树
+	- [ ] 有限状态机
+	- [ ] 蓄水池随机抽样
+	- [ ] 装饰器 `cache`
+- [ ] `DevOps`
+- [ ] `PostgreSQL`
+- [ ] `pytorch`
+- [ ] `tensorflow`
+- [ ] `yolo`
+- [ ] `langchain`
+- [ ] `React`
+- [ ] `RestfulAPI`
+- [ ] `Kafaka`
+- [ ] `nginx`
+- [ ] 机器学习
+- [ ] 深度学习
+- [ ] 决策树
+- [ ] 神经网络
+- [ ] `Caffe`
+- [ ] `shell` 编程
+- [ ] `Linux`
+- [ ] `Docker`
+- [ ] `Kubernetes`
+- [ ] `MVC` 架构
+- [ ] `MTP` 架构
+- [ ] `VUE`
+- [ ] `Python` 面向对象
+- [ ] `Python` 元类
+- [ ] `Python` 列表底层原理
+- [ ] `Python` 元组底层原理
+- [ ] `AI`大模型
+- [ ] `Python Web`
+- [ ] `py2exe`
+- [ ] `CRM`
+- [ ] `celery`
+- [ ] `JWT`
+- [ ] `Python` 字节码
+- [ ] 微信小程序
+- [ ] `Python` 爬虫
+	- [ ] `requests`
+	- [ ] `xpath`
+	- [ ] `beautifulSoup`
+	- [ ] `selenium`
+	- [ ] `playwright`
+	- [ ] `Puppeteer`
+	- [ ] `js` 逆向
+	- [ ] `app` 逆向
+	- [ ] 安卓逆向
+- [ ] `MongoDB`
+- [ ] `SQLite`
+- [ ] 数据处理&分析
+	- [ ] `pandas`
+	- [ ] `plores`
+	- [ ] `matplotlib`
+	- [ ] `seaborn`
+	- [ ] 数据分析与可视化
+- [ ] `numpy`
+- [ ] `PyQT`
+- [ ] `JavaScript`
+- [ ] `Cangjie`
+- [ ] `Golang`
+- [ ] 前端
+- [x] `Django` 武沛齐 `Python 2022 教程` ✅ 2026-08-01
+- [ ] 分布式
+- [ ] `CICD`
+- [ ] `selectdataset`
+- [ ] `Python stdin stdout stderr`
+- [ ] `canvas`
+- [ ] 设计模式
+	- [ ] 单例模式
+- [ ] 

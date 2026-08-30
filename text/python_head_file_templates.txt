@@ -1,0 +1,41 @@
+=================================================================================================================
+PyCharm-Python文件头模板
+=================================================================================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# @CreateTime : ${YEAR}/${MONTH}/${DAY} ${TIME}
+# @Author     : wephiles@${USER}
+# @IDE        : ${PRODUCT_NAME}
+# @ProjectName: ${PROJECT_NAME}
+# @FileName   : ${PROJECT_NAME}/${NAME}.py
+# @Description: This is description of this script.
+# @Interpreter: python 3.0+
+# @Motto      : You must take your place in the circle of life!
+# @AuthorSite : https://github.com/wephiles or https://gitee.com/wephiles
+
+# --END--
+
+
+=================================================================================================================
+Trae-Python文件头模板 
+=================================================================================================================
+
+"Python": {
+    "prefix": "header",
+    "body": [
+        "#!/usr/bin/env python",
+        "# -*- coding: utf-8 -*-",
+        "# Author      : JinYu@20866",
+        "# Directory   : $TM_DIRECTORY",
+        "# RelPath     : $RELATIVE_FILEPATH", 
+        "# FileName    : $TM_FILENAME",
+        "# CreateTime  : $CURRENT_YEAR/$CURRENT_MONTH/$CURRENT_DATE $CURRENT_HOUR:$CURRENT_MINUTE:$CURRENT_SECOND",
+        "# Version     : ",
+        "# Description : ",
+        "",
+        "",
+        "# --END--",
+        "$0" // 光标最终停留位置
+    ],
+    "description": "Log output to console"
+}

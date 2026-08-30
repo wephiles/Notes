@@ -1,0 +1,32 @@
+/*代码块配置区域*/
+#write .CodeMirror-wrap .CodeMirror-code pre {
+  font-size: 16px;
+  font-family:
+    "Inconsolata", "Source Code Pro", "Consolas", "Microsoft YaHei", monospace;
+}
+.md-fences {
+  font-family:
+    "Inconsolata", "Source Code Pro", "Consolas", "Microsoft YaHei", monospace;
+}
+
+/*行内代码配置区域*/
+#write code {
+  font-family:
+    "Inconsolata", "Source Code Pro", "Consolas", "JetBrains Mono", Consolas,
+    monospace;
+  font-size: 0.99em; /* 相对正文缩放，也可以写具体值如 14px */
+  background-color: #f0f0f0;
+  padding: 0.1em 0.2em;
+  border-radius: 4px;
+}
+
+/*可编辑区域宽度*/
+#write {
+  max-width: 85%; /* 占屏幕宽度的 94%，两侧留少量空白 */
+  margin: 0 auto;
+  padding: 20px 30px 100px;
+}
+
+#typora-source .CodeMirror-lines {
+  max-width: 85%;
+}
