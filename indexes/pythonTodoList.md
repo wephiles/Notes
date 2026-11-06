@@ -38,14 +38,19 @@ introduction: 待办列表，主要是学习 Python 过程中要学习的一些�
 - [x] `Python` 文档字符串 ✅ 2026-08-14
 - [x] `.gz` 格式的解压缩和文件压缩成 `.gz` 格式 ✅ 2026-08-14
 - [x] `uv` ✅ 2026-08-14
+- [ ] `Obsidian`
+	- [ ] `canvas`
+	- [ ] `bases`
+	- [ ] `obsidian dataview`
+	- [ ] 
 - [ ] `Python` 单例模式
 - [ ] `PyPy`
 - [ ] `Jython`
 - [ ] `Python` 特殊文件操作
 	- [ ] `xml`
 	- [ ] `csv`
-	- [ ] `yaml`
-	- [ ] `toml`
+	- [x] `yaml` ✅ 2026-09-05
+	- [x] `toml` ✅ 2026-09-05
 	- [ ] `ini`
 	- [ ] `bat`
 	- [ ] `rst`
@@ -69,7 +74,7 @@ introduction: 待办列表，主要是学习 Python 过程中要学习的一些�
 		- [x] `string` ✅ 2026-08-15
 		- [x] `tempfile` ✅ 2026-08-15
 		- [x] `threading` ✅ 2026-08-21
-		- [ ] `multiprocessing`
+		- [x] `multiprocessing` ✅ 2026-09-05
 		- [ ] `futures`
 		- [ ] `deque`
 		- [x] `queue` ✅ 2026-08-22
@@ -86,6 +91,7 @@ introduction: 待办列表，主要是学习 Python 过程中要学习的一些�
 		- [x] `python-dotenv` ✅ 2026-08-08
 		- [x] `uv` ✅ 2026-08-14
 		- [ ] `datasets`
+		- [x] `objprint` ✅ 2026-09-05
 		- [ ] `psutil` 🛫 2026-08-16 
 		- [ ] `socket`
 		- [ ] `requests`
@@ -118,8 +124,8 @@ introduction: 待办列表，主要是学习 Python 过程中要学习的一些�
 		- [ ] `googletrans`
 		- [ ] `black`
 - [ ] `Python` 关键词
-	- [ ] `yield`
-	- [ ] `yield from`
+	- [x] `yield` ✅ 2026-09-05
+	- [x] `yield from` ✅ 2026-09-05
 	- [x] `global` ✅ 2026-08-16
 	- [x] `nonlocal` ✅ 2026-08-16
 - [ ] `mermaid`

@@ -1,0 +1,149 @@
+{
+  "id": "88789113-a240-47c2-8d11-052f190c1c1e",
+  "title": "",
+  "messages": [
+    {
+      "role": "user",
+      "content": {
+        "root": {
+          "children": [
+            {
+              "children": [
+                {
+                  "detail": 0,
+                  "format": 0,
+                  "mode": "normal",
+                  "style": "",
+                  "text": "@pythonTodoList.md (1 词)",
+                  "type": "mention",
+                  "version": 1,
+                  "mentionName": "pythonTodoList.md (1 词)",
+                  "mentionable": {
+                    "type": "block",
+                    "content": "ython`",
+                    "file": "indexes/pythonTodoList.md",
+                    "startLine": 139,
+                    "endLine": 139,
+                    "source": "selection",
+                    "contentHash": "cfb02eb3"
+                  }
+                },
+                {
+                  "detail": 0,
+                  "format": 0,
+                  "mode": "normal",
+                  "style": "",
+                  "text": " ",
+                  "type": "text",
+                  "version": 1
+                },
+                {
+                  "detail": 0,
+                  "format": 0,
+                  "mode": "normal",
+                  "style": "",
+                  "text": "翻译成中文",
+                  "type": "text",
+                  "version": 1
+                }
+              ],
+              "direction": "ltr",
+              "format": "",
+              "indent": 0,
+              "type": "paragraph",
+              "version": 1,
+              "textFormat": 0,
+              "textStyle": ""
+            }
+          ],
+          "direction": "ltr",
+          "format": "",
+          "indent": 0,
+          "type": "root",
+          "version": 1
+        }
+      },
+      "promptContent": null,
+      "snapshotRef": {
+        "hash": "93f7dbc2"
+      },
+      "id": "ba7e7f0a-8c77-4b27-9d70-3faf444a18dd",
+      "mentionables": [
+        {
+          "type": "block",
+          "content": "ython`",
+          "file": "indexes/pythonTodoList.md",
+          "startLine": 139,
+          "endLine": 139,
+          "source": "selection",
+          "contentHash": "cfb02eb3"
+        }
+      ],
+      "selectedSkills": [],
+      "selectedModelIds": [],
+      "reasoningLevel": "auto",
+      "timeContext": "2026-09-02 19:35 (Wednesday)"
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "reasoning": "The user selected text: \"ython`\" — wait, looking at it, the selected content shows line 139 as \"ython`\". The selection spans from `<selected_text_start>ython`</selected_text_end>` and context shows `P<selected_text_start>\\nython`... \n\nActually the selection appears to be a fragment: \"P\" then newline... no wait. Let me look: \"`P<selected_text_start>\\nython`</selected_text_end> 协程\" — so the selected text is \"`Python`\" split across lines where \"P\" is before the marker... Hmm.\n\nActually the selected text is between `<selected_text_start>` and `</selected_text_end>`: it shows:\n\n```\nP<selected_text_start>\nython`\n</selected_text_end> 协程\n```\n\nHmm, so the selected text seems to be \"ython`\" plus possibly the line before. Wait, the marker seems placed after \"P\" but the newline... Actually line 139 content in the index shows \"`P\" then newline then \"ython`\" possibly? The line 139 was given as \"ython`\" (line 139 selected range startLine=139 endLine=139).\n\nThe user says \"pythonTodoList.md (1 词) 翻译成中文\" — translate 1 word into Chinese. The selected word appears to be \"Python\" (as displayed: `ython` preceded by P outside the selection markers but the whole token is `Python`). The snippet: \"`P<selected_text_start>\\nython`</selected_text_end> 协程\" — this is from \"- [ ] `P...` 协程\" line: \"`Python` 协程\"? Actually looking at the selection context, there's a line \"... `P\\nython` 协程\" which likely was originally \"- [ ] `Python` 协程\"? Hmm, no.\n\nWait, actually the context before selection shows: \"- [ ] `P\" then the selected start, then newline",
+      "id": "5408f85b-b442-4f8f-9a7e-3d3cd5c24668",
+      "metadata": {
+        "model": {
+          "providerId": "deepseek",
+          "id": "deepseek/deepseek-v4-flash",
+          "model": "deepseek-v4-flash",
+          "name": "deepseek-v4-flash",
+          "reasoningType": "openai",
+          "maxContextTokens": 1048576,
+          "modalities": [
+            "text"
+          ],
+          "builtinToolProvider": "none",
+          "builtinTools": {
+            "gpt": {
+              "webSearch": {
+                "enabled": false
+              }
+            },
+            "openrouter": {
+              "webSearch": {
+                "enabled": false
+              }
+            },
+            "grok": {
+              "webSearch": {
+                "enabled": false
+              }
+            },
+            "gemini": {
+              "webSearch": {
+                "enabled": false
+              },
+              "urlContext": {
+                "enabled": false
+              }
+            },
+            "deepseek": {
+              "webSearch": {
+                "enabled": false
+              }
+            }
+          }
+        },
+        "durationMs": 4149,
+        "generationState": "aborted",
+        "branchConversationId": "88789113-a240-47c2-8d11-052f190c1c1e",
+        "branchModelId": "deepseek/deepseek-v4-flash",
+        "branchLabel": "deepseek-v4-flash",
+        "reasoningDurationMs": 4149
+      }
+    }
+  ],
+  "createdAt": 1788348915781,
+  "updatedAt": 1788348920020,
+  "schemaVersion": 1,
+  "compaction": [],
+  "origin": "user"
+}

@@ -18,6 +18,46 @@ rating: "0"
 
 `Python` 中通过多进程可以利用CPU的多核优势，计算密集型操作适用于多进程。
 
+```python
+with ProcessPoolExecutor(max_workers=NUM_PROCESSES) as executor:
+        futures = []
+        for chunk in gen_chunks(INPUT_PATH):
+            # executor.submit() -- 逐个提交，返回单个 Future 对象，按提交顺序依次入队
+            # executor.map() -- 批量调用，结果顺序与输入顺序严格一致，只能传一个可迭代参数，多个参数需 zip 打包
+            # as_completed() -- 谁先完成先处理谁
+            # wait() -- 等待一批任务到达某个状态
+            # add_done_callback() -- 回调函数 不阻塞主进程
+            future = executor.submit(process_task, args)
+            futures.append(future)
+            
+         for future in as_completed(futures):  # 这样写的话，程序不会管提交顺序，哪个先结束先输出哪个
+             future.result()
+    
+for future in futures:  # 这样写的话，程序会按照提交顺序，即使排在后面的已经完成了，但是还是需要等排在前面的结束才能继续输出
+    future.result()
+```
+
+关于幂等性：
+
+![image-20261017120052511](https://wephiles-image-bed-1322748259.cos.ap-nanjing.myqcloud.com/assets/20261017120151467.png)
+
+关于断点续跑：
+
+**核心思路**：把任务拆成**固定编号的分片**，每个分片的产出是一个独立文件。约定：
+
+> **分片文件完整存在 = 这个分片已成功处理完毕；不存在 = 需要重做。**
+
+崩溃时，已完成的分片文件留在磁盘上，重跑时检测到就跳过——这就是断点续跑。
+
+==保证“完整存在”的关键：`os.replace` 原子重命名==
+
+子进程**不能直接写最终分片文件**（写到一半崩溃，残留半个文件，重跑时会误以为已完成）。所以采用两步：
+
+1. 先写**临时文件** `xxx.tmp`
+2. 全部写完后，`os.replace(tmp, final)` ——这是**操作系统级的原子操作**：在任意瞬间，final 要么不存在，要么是完整内容，**绝不会出现半个文件**
+
+这样“final 存在”就成了可靠的完成标记。
+
 # 1. 进程
 
 ```python
@@ -1167,7 +1207,7 @@ def task(lock):
         current_num -= 1
         with open('f1.txt', 'w', encoding='utf-8') as fp:
             fp.write(str(current_num))
-
+		
 
 if __name__ == '__main__':
     pool = ProcessPoolExecutor(4)
@@ -1390,4 +1430,973 @@ if __name__ == "__main__":
     for key, value in count_dict.items():
         print(f"{key} - {value}")
 ```
+
+## 1.7 示例
+
+### 1.7.1 示例一：一个文件分块，一个进程一个块，只返回统计结果
+
+```python
+"""
+分块，进程池处理 json 数据
+"""
+
+import os
+import json
+from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
+
+# ========================= 配置区 =========================
+CHUNK_SIZE = 1000
+INPUT_PATH = r'E:\Code\PyProjects\Demos\exercise\src\data\CMExam_test.json'
+NUM_PROCESSES = os.cpu_count() or 4
+
+
+# =========================================================
+
+
+def gen_chunks(file_path, chunk_size=None):
+    if chunk_size is None:
+        chunk_size = CHUNK_SIZE
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        chunk = []
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            chunk.append(line)
+            if len(chunk) >= chunk_size:
+                yield chunk
+                chunk = []
+        if chunk:
+            yield chunk
+
+
+def process_task(chunk, ):
+    res = defaultdict(int)
+    for line in chunk:
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError as e:
+            print(f'JSON 解析出错: {str(e)}')
+            continue
+        if 'Answer' in data:
+            ans = data['Answer']
+            res[ans] += 1
+    return res
+
+
+def main():
+    with ProcessPoolExecutor(max_workers=NUM_PROCESSES) as executor:
+        futures = []
+        for chunk in gen_chunks(INPUT_PATH):
+            future = executor.submit(process_task, chunk)
+            futures.append(future)
+
+    for future in futures:
+        print(future.result())
+
+
+if __name__ == '__main__':
+    main()
+```
+
+### 1.7.2 示例二：一个文件分块，一个进程一个块，写入同一个文件，使用锁
+
+```python
+"""
+分块，进程池处理 json 数据
+"""
+
+import os
+import uuid
+import json
+import copy
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor
+
+# ========================= 配置区 =========================
+CHUNK_SIZE = 1000
+INPUT_PATH = r'E:\Code\PyProjects\Demos\exercise\src\data\CMExam_test.json'
+OUTPUT_PATH = r'E:\Code\PyProjects\Demos\exercise\src\data\CMExam_test_uuid.jsonl'
+NUM_PROCESSES = os.cpu_count() or 4
+
+
+# =========================================================
+
+
+def gen_chunks(file_path, chunk_size=None):
+    if chunk_size is None:
+        chunk_size = CHUNK_SIZE
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        chunk = []
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            chunk.append(line)
+            if len(chunk) >= chunk_size:
+                yield chunk
+                chunk = []
+        if chunk:
+            yield chunk
+
+
+def process_task(chunk, output_path, lock):
+    for line in chunk:
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError as e:
+            print(f'JSON 解析出错: {str(e)}')
+            continue
+
+        copy_data = copy.deepcopy(data)
+        copy_data['uuid'] = str(uuid.uuid4())
+        save_data = json.dumps(copy_data, ensure_ascii=False)
+
+        # 子进程内子文件方式一: 使用锁
+        with lock:
+            with open(output_path, 'a', encoding='utf-8') as fp:
+                fp.write(save_data + '\n')
+
+
+def main():
+    # multiprocessing 可以直接传 lock = multiprocessing.RLock() 到参数中
+    # 但是 ProcessPoolExecutor 不能直接传 lock = multiprocessing.RLock() 到参数中
+    manager = multiprocessing.Manager()
+    lock = manager.RLock()
+    with ProcessPoolExecutor(max_workers=NUM_PROCESSES) as executor:
+        for chunk in gen_chunks(INPUT_PATH):
+            # executor.submit() -- 逐个提交，返回单个 Future 对象，按提交顺序依次入队
+            # executor.map() -- 批量调用，结果顺序与输入顺序严格一致，只能传一个可迭代参数，多个参数需 zip 打包
+            # as_completed() -- 谁先完成先处理谁
+            # wait() -- 等待一批任务到达某个状态
+            # add_done_callback() -- 回调函数 不阻塞主进程
+            executor.submit(process_task, chunk, OUTPUT_PATH, lock)
+
+
+if __name__ == '__main__':
+    main()
+    
+```
+
+当然上述代码效率可谓是灾难级的，改正：
+
+首先：
+
+==**每行都 `with lock` + `open` + 写入 —— 性能极差**==
+
+这是最大的问题。每个进程**每处理一行**就要：
+
+1. 获取 Manager 锁（**跨进程 IPC 通信**，走 socket/pipe，非常慢）
+2. 打开文件 → 写一行 → 关闭文件
+
+Manager 锁是所有同步原语里**最慢的一种**，每行都抢锁，并行优势基本被抵消，甚至可能比单进程还慢。
+
+**正确做法（推荐）：根本不要让子进程写同一个文件。** 让子进程只做计算，返回结果，由主进程统一写。
+
+第二：
+
+==**`copy.deepcopy(data)` 完全多余**==
+
+`data` 是刚 `json.loads` 出来的新对象，后面没有任何地方复用原对象，直接改即可。deepcopy 开销不小，纯浪费。
+
+第三：
+
+==`with` 块退出时会阻塞等待所有任务，但**异常被静默吞掉**==
+
+没有保存 Future，也没调 `result()`。`with` 退出时 `shutdown(wait=True)` 会等任务跑完（所以**程序不会提前退出**，这点你没问题），但如果某个任务内部抛异常，**你完全不会知道**。建议保存 futures 并检查结果。
+
+第四：
+
+==一些小问题==
+
+- `RLock` → 普通的 `Lock` 就够了（你没有嵌套加锁场景）
+- 每行 JSON 解析出错只 print，不知道是哪一行，且多进程下输出混乱——建议返回错误计数
+- 子进程写文件时如果某行处理到一半抛异常，**前面的行已写入**，重跑会产生重复数据（无幂等性）
+
+知错就要认，挨打要立正，改完后的结果，只是改了重大的可优化点，一些小问题（比如使用列表生成式来减少代码量等）没有改：
+
+```python
+"""
+分块，进程池处理 json 数据
+"""
+
+import os
+import uuid
+import json
+import copy
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+# ========================= 配置区 =========================
+CHUNK_SIZE = 1000
+INPUT_PATH = r'E:\Code\PyProjects\Demos\exercise\src\data\CMExam_test.json'
+OUTPUT_PATH = r'E:\Code\PyProjects\Demos\exercise\src\data\CMExam_test_uuid_new.jsonl'
+NUM_PROCESSES = os.cpu_count() or 4
+
+
+# =========================================================
+
+
+def gen_chunks(file_path, chunk_size=None):
+    if chunk_size is None:
+        chunk_size = CHUNK_SIZE
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        chunk = []
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            chunk.append(line)
+            if len(chunk) >= chunk_size:
+                yield chunk
+                chunk = []
+        if chunk:
+            yield chunk
+
+
+def process_task(chunk):
+    new_lines = []
+    errors = 0
+    for line in chunk:
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError as e:
+            print(f'JSON 解析出错: {str(e)}')
+            errors += 1
+            continue
+
+        data['uuid'] = str(uuid.uuid4())
+        save_data = json.dumps(data, ensure_ascii=False)
+        new_lines.append(save_data)
+    return '\n'.join(new_lines), errors
+
+
+def main():
+    # # multiprocessing 可以直接传 lock = multiprocessing.RLock() 到参数中
+    # # 但是 ProcessPoolExecutor 不能直接传 lock = multiprocessing.RLock() 到参数中
+    # manager = multiprocessing.Manager()
+    # lock = manager.Lock()
+    with ProcessPoolExecutor(max_workers=NUM_PROCESSES) as executor:
+        futures = []
+        for chunk in gen_chunks(INPUT_PATH):
+            # executor.submit() -- 逐个提交，返回单个 Future 对象，按提交顺序依次入队
+            # executor.map() -- 批量调用，结果顺序与输入顺序严格一致，只能传一个可迭代参数，多个参数需 zip 打包
+            # as_completed() -- 谁先完成先处理谁
+            # wait() -- 等待一批任务到达某个状态
+            # add_done_callback() -- 回调函数 不阻塞主进程
+            future = executor.submit(process_task, chunk)
+            futures.append(future)
+        with open(OUTPUT_PATH, 'w', encoding='utf-8') as fp:
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    fp.write(result[0] + '\n')
+                    if (err := result[1]) != 0:
+                        print(f'某一块数据解析 json 出现错误，错误行数: {err}')
+                except Exception as e:
+                    print(f'某一个子进程处理出现错误，没有结果: {e}')
+
+
+if __name__ == '__main__':
+    main()
+```
+
+### 1.7.3 示例三：一个文件分块，一个进程一个块，写入同一个文件（主进程合并，子进程只负责返回处理结果） + 断点续跑
+
+断点续跑 + 子进程写临时文件 + 主进程合并所有文件
+
+```python
+"""
+分块，进程池处理 json 数据
+"""
+
+import os
+import uuid
+import json
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+# ========================= 配置区 =========================
+CHUNK_SIZE = 1000
+INPUT_PATH = r'E:\Code\PyProjects\Demos\exercise\src\data\CMExam_test.json'
+OUTPUT_PATH = r'E:\Code\PyProjects\Demos\exercise\src\data\CMExam_test_uuid_over.jsonl'
+PART_DIR = f'{OUTPUT_PATH}.parts'  # 分片目录
+TMP_SUFFIX = '.tmp'
+NUM_PROCESSES = os.cpu_count() or 4
+
+
+# =========================================================
+
+
+def gen_chunks(file_path, chunk_size=None):
+    if chunk_size is None:
+        chunk_size = CHUNK_SIZE
+        
+    with open(file_path, 'r', encoding='utf-8') as f:
+        index = 0
+        chunk = []
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            chunk.append(line)
+            if len(chunk) >= chunk_size:
+                yield index, chunk
+                index += 1
+                chunk = []
+        if chunk:
+            yield index, chunk
+
+
+def process_task(chunk_index, chunk):
+    os.makedirs(PART_DIR, exist_ok=True)
+    final_path = os.path.join(PART_DIR, f'part_{chunk_index:06d}.jsonl')
+    tmp_path = final_path + TMP_SUFFIX
+    errors = 0
+    with open(tmp_path, 'w', encoding='utf-8') as fp:
+        for line in chunk:
+            try:
+                data = json.loads(line)
+            except json.JSONDecodeError as e:
+                print(f'JSON 解析出错: {str(e)}')
+                errors += 1
+                continue
+
+            data['uuid'] = str(uuid.uuid4())
+            save_data = json.dumps(data, ensure_ascii=False)
+
+            fp.write(save_data + '\n')
+    os.replace(tmp_path, final_path)
+    return chunk_index, errors
+
+
+def merge_parts():
+    part_files = sorted(
+        f for f in os.listdir(PART_DIR)
+        if f.startswith('part_') and not f.endswith(TMP_SUFFIX)
+    )
+    with open(OUTPUT_PATH, 'w', encoding='utf-8') as fw:
+        for name in part_files:
+            with open(os.path.join(PART_DIR, name), 'r', encoding='utf-8') as fr:
+                fw.write(fr.read())
+
+
+def main():
+    # # multiprocessing 可以直接传 lock = multiprocessing.RLock() 到参数中
+    # # 但是 ProcessPoolExecutor 不能直接传 lock = multiprocessing.RLock() 到参数中
+    # manager = multiprocessing.Manager()
+    # lock = manager.Lock()
+    with ProcessPoolExecutor(max_workers=NUM_PROCESSES) as executor:
+        futures = []
+        for index, chunk in gen_chunks(INPUT_PATH):
+            # 断点续跑的关键
+            final_path = os.path.join(PART_DIR, f'part_{index:06d}.jsonl')
+            if os.path.exists(final_path) and os.path.isfile(final_path):
+                print(f'分片 {index} 已完成，跳过')
+                continue
+            # executor.submit() -- 逐个提交，返回单个 Future 对象，按提交顺序依次入队
+            # executor.map() -- 批量调用，结果顺序与输入顺序严格一致，只能传一个可迭代参数，多个参数需 zip 打包
+            # as_completed() -- 谁先完成先处理谁
+            # wait() -- 等待一批任务到达某个状态
+            # add_done_callback() -- 回调函数 不阻塞主进程
+            future = executor.submit(process_task, index, chunk)
+            futures.append(future)
+
+        with open(OUTPUT_PATH, 'w', encoding='utf-8') as fp:
+            for future in as_completed(futures):
+                try:
+                    idx, errors = future.result()
+                    if errors != 0:
+                        print(f'第 {idx} 块解析 json 出现错误，错误行数: {errors}')
+                except Exception as e:
+                    print(f'数据块处理出现错误，没有结果: {e}')
+    merge_parts()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+### 1.7.4 示例四：多个文件，每个文件一个进程
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# @CreateTime : 2026/10/17 13:29
+# @Author     : wephiles@wephiles
+# @IDE        : PyCharm
+# @ProjectName: exercise
+# @FileName   : exercise/process_demo_01.py
+# @Description: This is description of this script.
+# @Interpreter: python 3.0+
+# @Motto      : You must take your place in the circle of life!
+# @AuthorSite : https://github.com/wephiles or https://gitee.com/wephiles
+
+# Copyright (c) 2026 wephiles.
+# This software is licensed under the MIT license.
+# See the LICENSE file for details.
+
+"""
+进程池处理多个 jsonl 文件
+"""
+
+import os
+import uuid
+import json
+from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+from tqdm import tqdm
+
+# ========================= 配置区 =========================
+INPUT_DIR = r"./data/"
+OUTPUT_DIR = r"result"
+OUTPUT_PATH = f"{OUTPUT_DIR}/output.jsonl"
+
+
+# =========================================================
+
+
+def safe_loads(s):
+    try:
+        return True, json.loads(s)
+    except json.decoder.JSONDecodeError:
+        # return {}  # {} [] null 0 false "" 能解析出来 如果这样写的话会引起歧义
+        return False, None
+
+
+def process_task(file_path: str):
+    if not os.path.exists(file_path):
+        return {
+            'file_path': file_path,
+            'filename': os.path.basename(file_path),
+            'error': 'file not exist'
+        }
+    stats = {
+        'f_path': file_path,
+        'f_name': os.path.basename(file_path),
+        'total_n': 0,
+        'error_n': 0,
+        'ok_n': 0,
+        'res_data': [],
+    }
+    with open(file_path, 'r', encoding='utf-8') as fp:
+        for line in fp:
+            line = line.strip()
+            if not line:
+                stats['total_n'] += 1
+                stats['error_n'] += 1
+                continue
+            data = safe_loads(line)
+            if not data[0]:
+                stats['total_n'] += 1
+                stats['error_n'] += 1
+                continue
+            stats['total_n'] += 1
+            stats['ok_n'] += 1
+
+            # 处理数据
+            if 'uuid' in data[1]:
+                _id = str(data[1]['uuid'])
+                data[1]['uuid'] = _id + '-20261024'
+            else:
+                data[1]['uuid'] = str(uuid.uuid4())
+            data_str = json.dumps(data[1], ensure_ascii=False)
+            stats['res_data'].append(data_str)
+    return stats
+
+
+def main():
+    files = Path(INPUT_DIR).rglob("*.jsonl")
+    NUM_PROCESSES = os.cpu_count() or 4
+
+    with ProcessPoolExecutor(max_workers=NUM_PROCESSES) as executor:
+        futures = [executor.submit(process_task, f_p) for f_p in files]
+
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        with open(OUTPUT_PATH, 'w', encoding='utf-8') as fp:
+            for f in tqdm(as_completed(futures)):
+                stats = f.result()
+                if 'error' not in stats:
+                    for data_string in stats['res_data']:
+                        fp.write(data_string + '\n')
+
+
+if __name__ == "__main__":
+    main()
+
+```
+
+### 1.7.5 示例五：进程池 + 线程池（图片下载+处理）
+
+#### 1.7.5.1 先多线程下载数据，再多进程处理数据
+
+```python
+"""
+先多线程下载数据，再多进程处理。
+"""
+
+import os
+import re
+import uuid
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+
+import requests
+from PIL import Image
+from tqdm import tqdm
+
+HEADERS = {
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+}
+
+session = requests.Session()
+session.headers.update(HEADERS)
+adapter = requests.adapters.HTTPAdapter(
+    max_retries=3,  # 重试次数
+    pool_connections=20,  # 缓存的连接池个数
+    pool_block=True,  # 池满时阻塞等待而不是丢弃链接
+    pool_maxsize=50,  # 每个池的最大链接数
+)
+session.mount("http://", adapter)
+session.mount("https://", adapter)
+
+
+def download(item):
+    url, save_path = item
+    response = session.get(url=url, timeout=30)
+    response.raise_for_status()
+    content_type = response.headers.get("content-type", "")
+    if "image" not in content_type:
+        print(f"【警告】返回内容可能不是图片：content-type = 「{content_type}」")
+        return
+    with open(save_path, "wb") as f:
+        f.write(response.content)
+        print(f"图片已保存至{save_path}.")
+
+
+def process(origin_path, save_path):
+    try:
+        img = Image.open(origin_path)
+        img.thumbnail((64, 64))
+        img.save(save_path, quality=90)
+        # print(f"图片 {origin_path} 已经压缩完毕，保存位置：{save_path}")
+    except Exception as e:
+        print(f"处理图片「{origin_path}」的过程中出现错误:「{e}」")
+
+
+if __name__ == "__main__":
+    ORIGIN_DIR = Path("origin")
+    THUMBNAIL_DIR = Path("thumbnail")
+    ORIGIN_DIR.mkdir(parents=True, exist_ok=True)
+    THUMBNAIL_DIR.mkdir(parents=True, exist_ok=True)
+
+    urls = []
+    with open("./img_msg.txt", "r", encoding="utf-8") as f_img:
+        for line in f_img:
+            line = line.strip()
+            if not line:
+                continue
+
+            rs = re.search(r"（.*?）", line)
+            if not rs:
+                continue
+
+            rs_url = re.search(r"(.*?)（", line)
+            if not rs_url:
+                continue
+
+            name = re.sub(r"[（）]", "", rs.group()) + "_" + str(uuid.uuid4()) + ".jpg"
+            full_path = ORIGIN_DIR / name
+
+            url = re.sub(r"（.*?）", "", rs_url.group()).replace("（", "")
+            urls.append((url, full_path))
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(download, urls)
+
+    # 简单计算一下有多少个图片 方便进度条显示
+    length = len(os.listdir(ORIGIN_DIR))
+
+    bar = tqdm(total=length, desc="多进程处理图片", unit="file")
+    with ProcessPoolExecutor(max_workers=10) as executor:
+        futures = []
+        for file_path in ORIGIN_DIR.rglob("*.jpg"):
+            future = executor.submit(process, file_path, THUMBNAIL_DIR / file_path.name)
+            futures.append(future)
+        for future in as_completed(futures):
+            future.result()
+            bar.update(1)
+    bar.close()
+```
+
+上述代码中有错误：
+
+1. `executor.map(download, urls)`: `map` 返回的生成器未被消费，所有下载异常（超时、连接错误等）被**完全静默**
+   1. 解决方式：改用 `as_completed` + `future.result()`，或至少 `list(executor.map(...))`
+2. `img.save(save_path, quality=90)`: 文件名硬编码 `.jpg`，若实际下载的是 PNG（RGBA 模式），Pillow 会抛出 `OSError: cannot write mode RGBA as JPEG`
+   1. 解决方式：根据实际 Content-Type 或图片格式动态设置扩展名，或统一 `convert("RGB")`
+
+不是错误但不建议：
+
+1. 模块级 `session = requests.Session()`：`requests.Session` 并非严格线程安全，官方文档建议每线程一个 Session；且在 Windows spawn 模式下，子进程会重新执行模块级代码，重复创建 Session
+   1. 解决方案：用 `threading.local()` 包装，或改用 `requests.get()`
+2. `download()` 函数: 仅校验 `Content-Type`，未验证下载内容是否为完整图片；截断的图片文件会在处理阶段才报错
+   1. 下载后用 `Image.open` + `verify()` 或至少 `io.BytesIO(response.content)` 尝试解析
+3. `process()` 函数: `Image.open()` 是惰性加载，截断图片（`image file is truncated`）在 `thumbnail()`/`save()` 时才抛异常
+   1. 解决方案：在 `open` 后立即 `img.load()`，或捕获 `OSError` 并记录具体文件
+
+修改一下代码：
+
+```
+"""
+先多线程下载数据，再多进程处理。
+"""
+
+import os
+import re
+import uuid
+import threading
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+
+import requests
+from PIL import Image
+from tqdm import tqdm
+
+HEADERS = {
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+}
+
+
+_thread_local = threading.local()
+
+
+def get_session():
+    """每个线程独立 session, 避免共享状态"""
+    if not hasattr(_thread_local, "session"):
+        session = requests.Session()
+        session.headers.update(HEADERS)
+        adapter = requests.adapters.HTTPAdapter(
+            max_retries=3,  # 重试次数
+            pool_connections=20,  # 缓存的连接池个数
+            pool_block=True,  # 池满时阻塞等待而不是丢弃链接
+            pool_maxsize=50,  # 每个池的最大链接数 此数量要 >= max_workers
+        )
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+
+        _thread_local.session = session
+
+    return _thread_local.session
+
+
+def download(item):
+    url, save_path = item
+    session = get_session()
+
+    response = session.get(url=url, timeout=30)
+    response.raise_for_status()
+    content_type = response.headers.get("content-type", "")
+    if "image" not in content_type:
+        print(f"【警告】返回内容可能不是图片: content-type = 「{content_type}」")
+        return
+    with open(save_path, "wb") as f:
+        f.write(response.content)
+        print(f"图片已保存至{save_path}.")
+
+
+def process(origin_path, save_path):
+    img = Image.open(origin_path)
+    img = img.convert("RGB")
+    img.thumbnail((64, 64))
+    img.save(save_path, quality=90)
+    # print(f"图片 {origin_path} 已经压缩完毕，保存位置：{save_path}")
+
+
+if __name__ == "__main__":
+    ORIGIN_DIR = Path("origin")
+    THUMBNAIL_DIR = Path("thumbnail")
+    ORIGIN_DIR.mkdir(parents=True, exist_ok=True)
+    THUMBNAIL_DIR.mkdir(parents=True, exist_ok=True)
+
+    urls = []
+    with open("./img_msg.txt", "r", encoding="utf-8") as f_img:
+        for line in f_img:
+            line = line.strip()
+            if not line:
+                continue
+
+            rs = re.search(r"（.*?）", line)
+            if not rs:
+                continue
+
+            rs_url = re.search(r"(.*?)（", line)
+            if not rs_url:
+                continue
+
+            name = re.sub(r"[（）]", "", rs.group()) + "_" + str(uuid.uuid4()) + ".jpg"
+            full_path = ORIGIN_DIR / name
+
+            url = re.sub(r"（.*?）", "", rs_url.group()).replace("（", "")
+            urls.append((url, full_path))
+
+    length = len(urls)
+    bar = tqdm(total=length, desc="多线程下载图片", unit="file")
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = []
+
+        for item in urls:
+            future = executor.submit(download, item)
+            futures.append(future)
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                print(f"处理图片的过程中出现错误:「{e}」")
+            bar.update(1)
+    bar.close()
+
+    # 简单计算一下有多少个图片 方便进度条显示
+    length = len(os.listdir(ORIGIN_DIR))
+
+    bar = tqdm(total=length, desc="多进程处理图片", unit="file")
+    with ProcessPoolExecutor(max_workers=10) as executor:
+        futures = []
+        for file_path in ORIGIN_DIR.rglob("*.jpg"):
+            future = executor.submit(process, file_path, THUMBNAIL_DIR / file_path.name)
+            futures.append(future)
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                pass
+            bar.update(1)
+    bar.close()
+```
+
+有一些补充：
+
+```
+1. 关于 _thread_local，为什么主进程里面写的这个对象可以直接在多线程中读取到？不是应该在 submit的时候传入参数吗？
+
+    a. 可见性（线程为什么能读到 _thread_local）→ 靠的是 Python 的作用域规则，和传参无关；
+    b. 隔离性（各线程的 session 互不干扰）→ 靠的是 threading.local 这个特殊对象本身的机制，也和传参无关。
+
+    关于可见性：
+    _thread_local = threading.local() 写在模块顶层，它就成了这个模块全局命名空间里的一个名字。而 ThreadPoolExecutor 创建的工作线程和主线程同属一个进程，共享同一份内存和同一个模块命名空间。
+    download() 在任何线程里执行时，函数体内遇到 _thread_local、get_session 这两个名字，都查不到局部定义，于是按 LEGB 规则（Local → Enclosing → Global → Builtin）一路向上，最终在模块 globals 里找到。
+    关于隔离性：
+    所有线程看到的 _thread_local 是同一个对象（id 完全相同），但它的属性存取被 CPython 劫持了——threading.local 其实就是 C 实现的 _thread._local，**内部维护一张 `线程id--> 独立字典` 的映射**
+
+    _local.owner = x   实际执行   mapping[当前线程id]["owner"] = x
+    _local.owner       实际执行   mapping[当前线程id]["owner"]
+```
+
+所以：
+
+| 场景                                 | 行为                                                         |
+| ------------------------------------ | ------------------------------------------------------------ |
+| 线程 A 写入 `_local.session`         | 只有线程 A 能读到；线程 B 的 `hasattr` 返回 `False`          |
+| 线程退出                             | 它那份数据被自动回收                                         |
+| 线程池**复用**同一条线程跑下一个任务 | 属性保留 → **Session 只创建一次并持续复用**（这正是连接池想要的效果） |
+| 换成普通 dict                        | 所有线程共享，互相覆盖（竞态）                               |
+
+**一句话总结**：线程能读到 `_thread_local` 是因为"模块全局名 + 同进程共享内存"这个再普通不过的作用域规则；而各线程的 session 互不干扰，则是因为 `threading.local` 用"同一个对象、每人一本账"的方式做了属性隔离——**可见性靠作用域，隔离性靠对象本身，两者都不需要传参**。
+
+---
+
+```
+1. 多进程是重新执行一遍脚本（除了__main__ 块下面的代码），那么子进程是如何执行 Target 函数的？子进程直接执行 Target 函数吗？子进程是如何找到 target 函数的？参数又是如何传递进去的？
+2. 关于多线程和多进程的submit和as_completed，我在submit 的循环执行完毕后，会不会阻塞直到所有结果完成才往下执行？还是在as_completed 后才阻塞？
+```
+
+**问题一：**
+
+**子进程并不"重新执行一遍脚本"得到 target 函数本身，而是通过 pickle 把函数名 import 解析出来，参数序列化后传过去，再在子进程里调用。**
+
+`submit(process, fp, sp)` 的完整链路，共 7 步：
+
+```
+父进程                                     子进程
+──────────                                 ─────────
+① submit(p, fp, sp)
+   ├─ pickler 序列化 process 的引用
+   │   (模块名 + 函数名, 不是源代码!)
+   └─ pickler 序列化参数 (fp, sp)
+② 放入无界队列
+③ 调用队列的 feeder 线程                       ④ 子进程 spawn/fork 后
+                                              ├─ __mp_main__ 重新 import
+                                              └─ worker 循环:
+                                                 while True:
+                                                   拿到 (process, (fp, sp))
+                                                   result = process(*args)  ← ⑥
+                                                   result pickle 回传       ← ⑦
+⑤ future._state = RUNNING → FINISHED
+   callback 触发
+
+```
+
+**“重新 import”这个环节只发生一次**（每个子进程诞生时），负责把**模块里的所有定义**重建出来：HEADERS、`_thread_local`、`download`、`process`、`get_session`、adapter 对象……然后 `if __name__ == "__main__"` 块被跳过。这时子进程的手里有了一份完整的模块环境，但 **`process` 函数对它来说是“别人的一个属性”，不是“它自己写的”**。
+
+之后**每一个任务**的分派过程是纯粹的 pickle 通信：
+
+- pickler 遇到函数 `process` 时，只保存“`my_script.py 模块的名字 space 里叫 process 的那个函数`”这个**引用（模块名+函数名）**，不是源代码； 这就是为什么要 能被 pickle，lambda/闭包/嵌套 def 都不行。
+- 参数 `(fp, sp)` 也被序列化（对象的具体数据）。这正是 `Path` 对象能传过去的原因。
+  _SPELPED
+  其中 `/mnt/data/sp1_base.py` 里 `subprocess` ——你可以在你的脚本里看到同样的现象。
+
+**为什么这就是“重新执行”答案**：`process` 的代码体本身（函数定义、内部逻辑）确实是在子进程里重跑的，但**函数对象是子进程从 pickle 数据里"反解析"出来的**，不是父进程"执行一遍脚本"再送给它的。pickling functions 校。这就是
+为什么你的 `process` 必须是**模块顶层函数**：lambda、嵌套函数、闭包都没有"可 pickle 的身份"（`__module__` + `__qualname__` 可以唯一定位它们）；`831ecf79-cf72` 中已经验证，`submit(lambda x: x, 1)` 直接 `PicklingError`。
+
+**问题二：**
+
+**submit 循环不会阻塞，真正的阻塞发生在迭代 `as_completed()` 的时候。**
+
+关键细节：
+
+1. **`submit()` 只是入队**：无论线程池是否空闲，`submit` 都是立刻返回 `Future` 对象。如果工作线程都在忙，任务只是排队，但 `submit` 本身不等待。
+2. **`as_completed()` 是生成器**：
+   - 调用 `as_completed(futures)` 这一行本身不阻塞
+   - 阻塞发生在 `for` 循环迭代它的时候——等到有任务完成才往下走
+   - 它是**完成顺序**返回（谁先完成先 yield 谁），不是提交顺序
+3. **`future.result()` 的行为取决于上下文**：
+   - 在 `as_completed` 迭代中调用：不阻塞（任务已完成）
+   - 直接对原始 `futures` 列表按序调用 `futures[0].result()`：会阻塞，直到该任务完成
+
+---
+
+```
+一些问题：
+1. 如果是多线程的话，那么不用 在submit 传参，线程就可以直接访问父进程的变量和内存，这样理解对吗？
+2. 关于 threading.local，整个进程（包括其线程）中共用这一个对象，但是每个线程在其中存着一份只有自己能访问个看到的数据，这样就可以做到一个线程一份数据，互相不影响，这样理解是否正确？
+3. LEGB 规则（Local → Enclosing → Global → Builtin）具体是如何找变量的？
+4. 如果是进程池的话，子进程想要用父进程的某一个变量，是否只能传参，而无法直接访问父进程的进程空间？
+5. Windows/macOS 的 spawn 模式下，子进程会重新 import 整个模块 -- 这句话作何理解？Linux 的 fork 模式下，又怎么做？
+```
+
+关于上述五个问题：
+
+**问题一：**
+
+大方向正确，但是表述需要精确化：
+
+- ❌ 说法修正：不是"父进程的变量"。主线程和工作线程是**兄弟关系**（同属一个进程），不是父子关系。"父进程/子进程"是进程池那边的概念（问题 4、5）。
+- ⚠️ 范围修正：线程能直接访问的是**共享内存部分**，不是一切：
+
+| 进程内所有线程共享 ✅                       | 每线程独立 ❌                              |
+| ------------------------------------------ | ----------------------------------------- |
+| 模块全局变量（`_thread_local`、`HEADERS`） | **局部变量**（在各自调用栈上）            |
+| 堆上的对象（`Session` 实例）               | 寄存器、栈帧                              |
+| 已 import 的模块、打开的文件描述符         | （以及 `threading.local` 里各自的"账本"） |
+
+**问题二：**
+
+说的就是它的全部原理：“整个进程共用同一个对象（门牌号相同，id 相同），但每个线程在里面存一本只有自己能看到的账”。补三个细节就完整了：
+
+- **主线程也有一本账**（你的代码恰好没用主线程跑下载，所以无感）；
+- **线程退出 → 账本自动回收**；
+- **线程池复用线程 → 账本保留** → 这正是你的 `get_session()` 能让每条池线程只创建一次 Session 并持续复用的原因。
+
+**问题三：LEGB 的查找机制**
+
+**读名字时**，从最内层向外逐层找，**命中即停**，四层全 miss 则抛 `NameError`：
+
+| 层            | 是什么                                          | 生命周期                                         |
+| ------------- | ----------------------------------------------- | ------------------------------------------------ |
+| **L**ocal     | 当前函数体内的命名空间                          | 每次函数调用新建，调用结束销毁                   |
+| **E**nclosing | 外层嵌套函数的命名空间（闭包）                  | 外层函数存活期间                                 |
+| **G**lobal    | 模块级命名空间（`globals()` 可查看）            | 模块 import 时创建，**进程内所有线程共享这一份** |
+| **B**uiltin   | `builtins` 模块（`print`、`len`、`Exception`…） | 解释器启动时就有                                 |
+
+还有两个容易踩的规则：
+
+- **赋值默认绑在 L 层**：函数里写 `x = ...` 会直接在局部创建新变量，`x = x + 1` 甚至直接抛 `UnboundLocalError: local variable 'counter' referenced before assignment`（演示已复现）。想真正改外层必须声明 `global x`（改 G 层）或 `nonlocal x`（改 E 层）。
+- **G 层同名会遮蔽 B 层**：模块里写 `sum = "xxx"` 后 `sum([1,2,3])` 就炸了，`del sum` 才恢复（演示已复现）。
+
+套回你的 `download()`：`url`、`save_path`、`response` → **L** 层；`_thread_local`、`get_session`、`download`、`HEADERS` → **G** 层；`print`、`requests.RequestException` → **B** 层。你的代码没有嵌套函数，所以 **E** 层用不上。
+
+**问题四：**
+
+理解正确：子进程有**独立的虚拟地址空间**，父进程变量对它不可见。传参的本质是**复制**：
+
+由此有个重要推论——**传过去的函数和参数都必须可 pickle**：这就是为什么 `process` 必须是模块顶层函数，而不能是 lambda 或嵌套函数（不信可以把 `process` 改成闭包试试，会直接报 `PicklingError`）。
+
+除了 `submit` 传参，还有这些通道，各有取舍：
+
+| 方式                                          | 机制                                   | 特点                                       |
+| --------------------------------------------- | -------------------------------------- | ------------------------------------------ |
+| `submit(f, args...)`                          | pickle 复制                            | 标准做法，一次性快照                       |
+| `initializer=fn, initargs=...`                | 子进程启动时执行一次                   | 适合"每个子进程一份"的初始化（如加载模型） |
+| 模块级变量                                    | 见问题 5：spawn 重执行 / fork 继承快照 | 拿到的是**初始副本**，非实时共享           |
+| `multiprocessing.Value/Array`、`SharedMemory` | 内核级共享内存                         | **真正实时共享**，需配锁                   |
+| `Manager`                                     | 代理对象，每次操作走 IPC               | 方便但慢                                   |
+| 文件/Redis/数据库                             | 外部介质                               | 跨进程持久                                 |
+
+注意最后一行：fork 模式下子进程能"看到"父进程变量的值，但那是 fork 瞬间的**内存快照拷贝**，之后父进程怎么改它都看不见——本质仍是复制，不是访问。
+
+**问题五：**
+
+spawn 的"重新 import" vs fork 的"写时复制"
+
+**spawn（Windows 默认，macOS 3.8+ 默认）** 的子进程启动流程：
+
+1. 父进程启动一个**全新的 Python 解释器进程**；
+2. 新进程把你的脚本当作普通模块 **import**——但以 `__mp_main__` 的名字（不是 `__main__`）；
+3. import = 从头执行模块级代码：`import requests`、`HEADERS = {...}`、`_thread_local = threading.local()`、`def download...` **全部重跑一遍**，得到一套平行的副本；
+4. 因为 `__name__ == "__mp_main__"` ≠ `"__main__"`，`if __name__ == "__main__":` 块被跳过 → 不会在子进程里递归创建进程池。**这行守卫存在的根本原因就在这**（Windows 上不写它就是 fork bomb）；
+5. 子进程就绪，之后任务函数 + 参数通过 pickle 送进来。
+
+**fork（Linux 传统默认）** 则完全不同：`os.fork()` 让内核把父进程的整个地址空间**写时复制**给子进程——fork 那一刻内存里已有的一切（import 过的模块、全局对象的值）子进程"生来就有"，**模块级代码不会重新执行**；之后谁先写哪块内存，内核才复制哪块页，父子从此互不干扰。
+
+| 对比项                   | fork                           | spawn                                      |
+| ------------------------ | ------------------------------ | ------------------------------------------ |
+| 模块级代码               | 不重新执行（只打印 1 次）      | **重新执行**（打印 2 次）                  |
+| 子进程 `__name__`        | `'__main__'`（继承）           | `'__mp_main__'`（重 import）               |
+| 全局对象 `id`            | 与父进程**相同**               | 与父进程**不同**（平行副本）               |
+| 父进程 fork/启动后的修改 | 子进程**看不见**（仍是快照值） | 子进程看不见（本来独立）                   |
+| 启动开销                 | 极快（不重 import）            | 慢（重跑 import、requests/PIL 等都要加载） |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

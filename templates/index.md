@@ -11,7 +11,7 @@ aliases:
   - 索引式笔记
 description:
 author:
-motto:
+motto: 有志者，事竟成。破釜沉舟，百二秦关终属楚。苦心人，天不负。卧薪尝胆，三千越甲可吞吴。
 datetime: "{{date: YYYY-MM-DD HH:MM:SS ddd}}"
 rating:
 introduction:

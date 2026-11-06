@@ -8,17 +8,19 @@ tags: [typora, 测试, markdown, 语法, 重要]
 
 [TOC]
 
-# 这是一级标题 Title1
+# 这是一级标题 Title 1
 
-## 这是二级标题 Title2
+## 这是二级标题 Title 2
 
-### 这是三级标题 Title3
+### 这是三级标题 Title 3
 
-#### 这是四级标题 Title4
+#### 这是四级标题 Title 4
 
-##### 这是五级标题 Title5
+##### 这是五级标题 Title 5
 
-###### 这是六级标题 Title6
+###### 这是六级标题 Title 6
+
+###### 哈`哈哈`
 
 ---
 
@@ -28,17 +30,17 @@ tags: [typora, 测试, markdown, 语法, 重要]
 
 豫章故郡，洪都新府。星分翼轸，地接衡庐。襟三江而带五湖，控蛮荆而引瓯越。物华天宝，龙光射牛斗之墟；人杰地灵，徐孺下陈蕃之榻。雄州雾列，俊采星驰。台隍枕夷夏之交，宾主尽东南之美。都督阎公之雅望，棨戟遥临；宇文新州之懿范，襜帷暂驻。十旬休假，胜友如云；千里逢迎，高朋满座。腾蛟起凤，孟学士之词宗；紫电青霜，王将军之武库。家君作宰，路出名区；童子何知，躬逢胜饯。(豫章故郡 一作：南昌故郡；青霜 一作：清霜)
 
-　　时维九月，序属三秋。潦水尽而寒潭清，烟光凝而暮山紫。俨骖騑于上路，访风景于崇阿。临帝子之长洲，得天人之旧馆。层峦耸翠，上出重霄；飞阁流丹，下临无地。鹤汀凫渚，穷岛屿之萦回；桂殿兰宫，即冈峦之体势。（天人 一作：仙人；层峦 一作：层台；即冈 一作：列冈；飞阁流丹 一作：飞阁翔丹）
+时维九月，序属三秋。潦水尽而寒潭清，烟光凝而暮山紫。俨骖騑于上路，访风景于崇阿。临帝子之长洲，得天人之旧馆。层峦耸翠，上出重霄；飞阁流丹，下临无地。鹤汀凫渚，穷岛屿之萦回；桂殿兰宫，即冈峦之体势。（天人 一作：仙人；层峦 一作：层台；即冈 一作：列冈；飞阁流丹 一作：飞阁翔丹）
 
-　　...
-　　滕王高阁临江渚，佩玉鸣鸾罢歌舞。
-　　画栋朝飞南浦云，珠帘暮卷西山雨。
-　　闲云潭影日悠悠，物换星移几度秋。
-　　阁中帝子今何在？槛外长江空自流。
+...
+滕王高阁临江渚，佩玉鸣鸾罢歌舞。
+画栋朝飞南浦云，珠帘暮卷西山雨。
+闲云潭影日悠悠，物换星移几度秋。
+阁中帝子今何在？槛外长江空自流。
 
 No human being could fail to be deeply moved by such a tribute as this [[Thayer Award](https://en.wikipedia.org/wiki/Sylvanus_Thayer_Award)]. Coming from a `profession `I have served so long, and a people I have loved so well, it fills me with an emotion I cannot express. **But this award is not intended primarily to honor a personality**, but to symbolize a great moral code -- <u>the code of conduct and chivalry</u> of those who ==guard this beloved== land of culture and ancient descent. That is the animation of this medallion. For all eyes and for all time, it is an expression of the ethics of the American soldier. That I should be integrated in this way with so noble an ideal arouses a sense of pride and yet of humility which will be with me always.
 
-这有一段文字，我要**将他们加粗**，并且还要进行==高亮==，有些时候，我还会使用一些 `English`，另外，我还会<u>给他们加上下划线</u>；
+这有一段文字，我要**将他们加粗**，并且还要进行==高亮==，有些时候，我还会使<u>**用一些 `English`，另外**，</u>我还会<u>给他们加上下划线</u>；
 
 并且我还要*给有的文字加上斜体*；
 
@@ -71,7 +73,7 @@ No human being could fail to be deeply moved by such a tribute as this [[Thayer 
 
 **引用链接 **是管理 url 的一种方法, **引用链接**的语法：
 
-```
+```python
 正文处[链接文字][链接标签]
 
 文末统一管理链接处:
@@ -129,6 +131,7 @@ No human being could fail to be deeply moved by such a tribute as this [[Thayer 
 | 一       | aaa      | 123  |
 | 二       | bbb      | 456  |
 | 三       | ccc      | 789  |
+|          |          |      |
 
 ---
 
@@ -136,9 +139,9 @@ No human being could fail to be deeply moved by such a tribute as this [[Thayer 
 
 ```mermaid
 pie title 编程语言使用占比
-    "Python" : 45
+    "Python" : 40
     "JavaScript" : 30
-    "其他" : 25
+    "其他" : 30
 ```
 
 ---
@@ -173,14 +176,14 @@ $$
 
 这是行内代码: `python manage.py runserver`
 
-下面是代码块
+下面是代码块：
 
 ```python
 from pathlib import Path
 
 import scrapy
 
-
+# 这是中文注释
 class Test1Spider(scrapy.Spider):
     name = "test_1"
     start_urls = [
@@ -188,7 +191,7 @@ class Test1Spider(scrapy.Spider):
         "https://quotes.toscrape.com/page/2/",
         "https://quotes.toscrape.com/page/3/",
     ]
-
+    
     def parse(self, response):
         for quote in response.xpath('//div[@class="quote"]'):
             yield {
@@ -222,31 +225,39 @@ class Test1Spider(scrapy.Spider):
 >
 > 注意 Caution
 
-----
-
 > 这是引用内容
 >
 > > 引用里面可以嵌套引用
 > >
 > > > 再嵌套一层
 > > >
-> > > > [!NOte]
+> > > > [!Note]
 > > > >
 > > > > 也可以嵌套警告框
 > > > >
-> > > > ```
-> > > > 也可以嵌套代码块
+> > > > `This is inline code.`
+> > > >
+> > > > ```python
+> > > > # 也可以嵌套代码块
+> > > > # This is code block.
+> > > > def main():
+> > > > 	pass
 > > > > ```
 > > > >
 > > > > `当然也有行内代码`
 > > > >
 > > > > 1. 有序列表
+> > > >    1. 哈哈
+> > > >    2. 😄
+> > > >    3. 😭
 > > > > 2. 列表呀
 > > > >
 > > > > - 无序列表
 > > > >   - 哈哈哈
 > > > >   - 嘻嘻嘻
 > > > >     - 啦啦啦
+> > > >       - 问问问
+> > > >       - 哼哼哼
 > > > > - 列表呀
 > > > >
 > > > > # 一级标题
@@ -256,6 +267,22 @@ class Test1Spider(scrapy.Spider):
 > > > > *<u>**人固有一死**，或==轻于鸿毛==，或==重于泰山==。</u>*
 > > > >
 > > > > 有的人~死了~，他还^活着^。有的人==活着==，他已经~~死了~~。
+> > > >
+> > > > > 想眼中，能有多少泪珠儿，怎经得秋流到冬，春流到夏。
+> > > > >
+> > > > > > 无敌
+> > > > > >
+> > > > > > 哇哈哈哈
+> > > > > >
+> > > > > > > 我是傻子
+> > > > > > >
+> > > > > > > 啦啦啦啦
+> > > > > >
+> > > > > > 天行健，君子以自强不息。地势坤，君子以厚德载物。
+> > >
+> > > 呜呜呜哈哈哈嘻嘻嘻呀呀呀啊啊啊喂喂喂哼哼哼
+>
+> `这是行内代码块`
 
 ---
 
@@ -285,18 +312,21 @@ class Test1Spider(scrapy.Spider):
 
 下面是待办列表：
 
-- [x] 任务1
-  - [ ] a
-  - [ ] b
-    - [x] b1
-    - [ ] b2
-- [x] 任务二
-- [ ] 任务三
-- [ ] job 4
+- [ ] abc
+  - [ ] abc
+  - [x] ao
+    - [x] aoo
+    - [ ] aooooa
+  - [ ] aoooo
+
+- [ ] def
+- [x] eee
+- [x] aaa
+- [ ] ddd
 
 ----
 
-补充：Obsidian 中的注释语法：
+补充：`Obsidian` 中的注释语法：
 
 ```
 %%
@@ -319,6 +349,10 @@ class Test1Spider(scrapy.Spider):
 
 这又是一段引用了别人的内容的文本。[^2]
 
+脚注的展示效果：
+
+![image-20260830164249187](./assets/20260830164251059.png)
+
 [^1]: 巴拉巴拉巴拉
 
 [^2]: 滴答滴答滴答
@@ -327,6 +361,3 @@ class Test1Spider(scrapy.Spider):
 
 [^汉字标识符]: 这是一个中文汉字标识符表示的脚注
 
-脚注的展示效果：
-
-![image-20260830164249187](https://wephiles-image-bed-1322748259.cos.ap-nanjing.myqcloud.com/assets/20260830164251059.png)
